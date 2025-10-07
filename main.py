@@ -1,5 +1,6 @@
 from tkinter import Tk
 from views.login_page import LoginPage
+from views.register_page import RegisterPage
 from views.splash_page import SplashScreenPage
 from theme.style_config import setup_styles
 from resources.parameters.app_parameters import APP_CONFIG
@@ -7,27 +8,55 @@ from resources.parameters.app_parameters import APP_CONFIG
 class MainPage:
     def __init__(self):
         self.root = Tk()
-        self._init_window()
+        self._initialize_window()
         setup_styles()
 
+        # Available pages
+        self.pages = {
+            "splash": SplashScreenPage,
+            "login": LoginPage,
+            "register": RegisterPage
+            # Add more pages here, e.g. "home": HomePage
+        }
+
         self.current_page = None
-        self.show_splash()
+        self.navigate("splash")
 
-    def _init_window(self):
+    def _initialize_window(self):
         self.root.title(APP_CONFIG["title"])
-        self.root.geometry(APP_CONFIG["geometry"])
         self.root.configure(bg=APP_CONFIG["background_color"])
+        self.root.resizable(True, True)  # Allow resizing for flexibility
 
-    def show_splash(self):
+    def navigate(self, page_name: str):
+        """Navigate to a specific page by name"""
         self._clear_current_page()
-        self.current_page = SplashScreenPage(self.root, self.show_login_page)
+
+        page_class = self.pages.get(page_name)
+        if not page_class:
+            raise ValueError(f"Page '{page_name}' not found.")
+
+        # Splash screen uses a callback to continue
+        if page_name == "splash":
+            self.current_page = page_class(self.root, lambda: self.navigate("login"))
+        else:
+            self.current_page = page_class(self.root, controller=self)
+
         self.current_page.pack(fill="both", expand=True)
 
-    def show_login_page(self):
-        self._clear_current_page()
-        self.current_page = LoginPage(self.root, self)
-        self.current_page.pack(fill="both", expand=True)
-        self.current_page.render()
+        # Optional render method for custom pages
+        if hasattr(self.current_page, "render"):
+            self.current_page.render()
+
+        # Resize window to fit new content
+        self.root.update_idletasks()
+        width = self.root.winfo_reqwidth()
+        height = self.root.winfo_reqheight()
+
+        # Apply minimum size to avoid overly small windows
+        min_width = max(width, 700)
+        min_height = max(height, 400)
+
+        self.root.geometry(f"{min_width}x{min_height}+100+100")
 
     def _clear_current_page(self):
         if self.current_page:
@@ -38,5 +67,7 @@ class MainPage:
     def run(self):
         self.root.mainloop()
 
-main = MainPage()
-main.run()
+
+if __name__ == "__main__":
+    app = MainPage()
+    app.run()
