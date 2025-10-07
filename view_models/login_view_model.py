@@ -1,22 +1,28 @@
-from models.user_model import UserModel
-
 class LoginViewModel:
     def __init__(self):
-        self.user = UserModel()
+        self.username = ""
+        self.password = ""
 
-    def set_username(self, username):
-        self.user.username = username
+    def set_credentials(self, username, password):
+        self.username = username
+        self.password = password
 
-    def set_password(self, password):
-        self.user.password = password
+    def validate_credentials(self):
+        # Contoh validasi sederhana
+        if not self.username or not self.password:
+            return False, "Username dan password tidak boleh kosong."
 
-    def validate(self):
-        return self.user.is_valid()
+        if len(self.username) < 3:
+            return False, "Username terlalu pendek."
+
+        if len(self.password) < 6:
+            return False, "Password harus minimal 6 karakter."
+
+        return True, "Validasi berhasil."
 
     def login(self):
-        if self.validate():
-            print(f"Logging in as {self.user.username}")
-            return True
+        # Simulasi proses login
+        if self.username == "admin" and self.password == "admin123":
+            return True, "Login berhasil."
         else:
-            print("Invalid credentials")
-            return False
+            return False, "Username atau password salah."

@@ -76,6 +76,9 @@ class FormField(Component):
             autoselect=self._autoselect
         )
 
+        self.label_widget = self.label.get_widget()
+        self.input_widget = self.text_input.get_widget()
+
     def render(self):
         self.label.render()
         self.text_input.render()

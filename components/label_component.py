@@ -51,3 +51,8 @@ class LabelComponent(Component):
             self._label.grid(padx=padx, pady=pady)
         elif layout == "place":
             self._label.place(relx=0.5, rely=0.5, anchor="center")
+
+    def get_widget(self):
+        return self._label
+
+

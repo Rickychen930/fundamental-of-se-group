@@ -73,3 +73,7 @@ class TextInputComponent(Component):
         if self._text_box:
             self._text_box.delete("1.0", tk.END)
             self._text_box.insert("1.0", value)
+
+    def get_widget(self):
+        return self._text_box
+
