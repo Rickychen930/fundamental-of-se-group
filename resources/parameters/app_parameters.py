@@ -133,7 +133,11 @@ LOGIN_CONFIG = {
     "register_button_text": get_text("register_button"),
     "register_button_style": "Secondary.TButton",
     "register_button_layout": "pack",
-    "register_button_padding": (20, 10)
+    "register_button_padding": (20, 10),
+    "title_fg": get_color("title_fg"),
+    "title_bg": get_color("title_bg"),
+    "cancel_text":get_text("cancel_button")
+
 }
 
 REGISTER_CONFIG = {

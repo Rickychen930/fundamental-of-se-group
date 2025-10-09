@@ -22,7 +22,7 @@ class ButtonComponent(Component):
         )
         self._name = name
         self._action = action
-        self._btn = None
+        self._btn = None  # Internal button instance
 
     def create_component(self):
         config = {
@@ -44,3 +44,11 @@ class ButtonComponent(Component):
             self._btn.grid(padx=padx, pady=pady)
         elif layout == "place":
             self._btn.place(relx=0.5, rely=0.5, anchor="center")
+
+    @property
+    def button_widget(self):
+        return self._btn
+
+    def set_state(self, state):
+        if self._btn:
+            self._btn.config(state=state)

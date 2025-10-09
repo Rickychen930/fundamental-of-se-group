@@ -8,11 +8,12 @@ STRINGS = {
 
         # Login Page
         "login_title": "Login",
-        "login_subtitle": "Please log in to continue",
+        "login_subtitle": "Login",
         "login_button": "Login",
         "username_label": "Username",
         "password_label": "Password",
         "register_button": "Create Account",
+        "cancel_button": "Cancel",
 
         # Register Page
         "register_title": "Register",

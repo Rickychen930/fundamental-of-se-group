@@ -25,17 +25,15 @@ class MainPage:
     def _initialize_window(self):
         self.root.title(APP_CONFIG["title"])
         self.root.configure(bg=APP_CONFIG["background_color"])
-        self.root.resizable(True, True)  # Allow resizing for flexibility
+        self.root.resizable(False, False)  # ✅ Window is now fixed size
 
     def navigate(self, page_name: str):
-        """Navigate to a specific page by name"""
         self._clear_current_page()
 
         page_class = self.pages.get(page_name)
         if not page_class:
             raise ValueError(f"Page '{page_name}' not found.")
 
-        # Splash screen uses a callback to continue
         if page_name == "splash":
             self.current_page = page_class(self.root, lambda: self.navigate("login"))
         else:
@@ -43,16 +41,13 @@ class MainPage:
 
         self.current_page.pack(fill="both", expand=True)
 
-        # Optional render method for custom pages
         if hasattr(self.current_page, "render"):
             self.current_page.render()
 
-        # Resize window to fit new content
         self.root.update_idletasks()
         width = self.root.winfo_reqwidth()
         height = self.root.winfo_reqheight()
 
-        # Apply minimum size to avoid overly small windows
         min_width = max(width, 700)
         min_height = max(height, 400)
 
