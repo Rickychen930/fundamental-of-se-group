@@ -2,6 +2,10 @@ import tkinter as tk
 from tkinter import messagebox
 import json
 
+from components.button_component import ButtonComponent
+from components.label_component import LabelComponent
+from views.base_page import BasePage
+
 # from view_models.login_view_model import LoginViewModel
 
 def load_student_data(file_path):
@@ -17,9 +21,9 @@ def load_student_data(file_path):
 students_data = load_student_data('students.data')  
 subjects_data = ["Math", "Science", "History", "Art","Chemistry"]
 
-class DashboardPage:
+class DashboardPage(BasePage):
     def __init__(self, root):
-        self.root = root
+        super().__init__(root)
         self.root.title("Dashboard Page")
         self.current_user = None  
         self.enrolled_subjects = []
@@ -27,53 +31,16 @@ class DashboardPage:
         
         self.login_window()
 
-# step 1
-    def login_window(self):
-        
-        for widget in self.root.winfo_children():
-            widget.destroy()
-
-        
-        tk.Label(self.root, text="Student Login", font=("Arial", 14)).pack(pady=10)
-        
-    
-        self.email_entry = tk.Entry(self.root, width=30)
-        self.email_entry.insert(0, "University Email")
-        self.email_entry.pack(pady=5)
-        
-        
-        self.password_entry = tk.Entry(self.root, width=30, show="*")
-        self.password_entry.insert(0, "Password")
-        self.password_entry.pack(pady=5)
-        
-        tk.Button(self.root, text="Login", command=self.validate_login).pack(pady=10)
-
-    def validate_login(self):
-        email = self.email_entry.get().strip()
-        password = self.password_entry.get().strip()
-        
-    
-        if not email or not password:
-            messagebox.showerror("Error", "Enter all fields")
-            return
-
-        
-        if email in students_data and students_data[email] == password:
-            self.current_user = email
-            self.main_menu()
-        else:
-            messagebox.showerror("Error", "Enter correct details")
-
     def main_menu(self):
         
         for widget in self.root.winfo_children():
             widget.destroy()
 
-        tk.Label(self.root, text="Welcome to Dashboard", font=("Arial", 14)).pack(pady=10)
+        LabelComponent(self.root, text="Welcome to Dashboard", font=("Arial", 14)).pack(pady=10)
         
-        tk.Button(self.root, text="Enroll in Subjects", command=self.enrollment_window).pack(pady=5)
-        tk.Button(self.root, text="View Enrolled Subjects", command=self.view_enrollments).pack(pady=5)
-        tk.Button(self.root, text="Logout", command=self.login_window).pack(pady=10)
+        ButtonComponent(self.root, text="Enroll in Subjects", command=self.enrollment_window).pack(pady=5)
+        ButtonComponent(self.root, text="View Enrolled Subjects", command=self.view_enrollments).pack(pady=5)
+        ButtonComponent(self.root, text="Logout", command=self.login_window).pack(pady=10)
 
 
 # step2
