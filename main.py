@@ -3,6 +3,9 @@ from views.login_page import LoginPage
 from views.register_page import RegisterPage
 from views.splash_page import SplashScreenPage
 from theme.style_config import setup_styles
+from views.student_dashboard_page import StudentDashboardPage      # NEW
+from views.subject_list_page import SubjectListPage                # NEW
+from views.exception_page import ExceptionPage #New
 from resources.parameters.app_parameters import APP_CONFIG
 
 class MainPage:
