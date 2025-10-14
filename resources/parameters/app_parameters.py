@@ -133,7 +133,11 @@ LOGIN_CONFIG = {
     "register_button_text": get_text("register_button"),
     "register_button_style": "Secondary.TButton",
     "register_button_layout": "pack",
-    "register_button_padding": (20, 10)
+    "register_button_padding": (20, 10),
+    "title_fg": get_color("title_fg"),
+    "title_bg": get_color("title_bg"),
+    "cancel_text":get_text("cancel_button")
+
 }
 
 REGISTER_CONFIG = {
@@ -170,3 +174,23 @@ REGISTER_CONFIG = {
     "back_button_layout": "pack",
     "back_button_padding": (20, 10)
 }
+
+ALERT_CONFIG = {
+    "style": "Alert.TLabel",
+    "layout": "pack",
+    "padding": (10, 5),
+    "wraplength": 400,
+    "justify": "left"
+}
+
+MESSAGEBOX_CONFIG = {
+    "style": "MessageBox.TFrame",
+    "layout": "pack",
+    "padding": (10, 10),
+    "wraplength": 400,
+    "justify": "left",
+    "default_title": "Notice",
+    "title_style": "MessageBoxTitle.TLabel",
+    "message_style": "MessageBoxText.TLabel"
+}
+
