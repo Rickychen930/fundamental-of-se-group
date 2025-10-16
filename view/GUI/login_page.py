@@ -7,9 +7,11 @@ from resources.parameters.app_parameters import LOGIN_CONFIG
 from view.GUI.base_page import BasePage
 
 class LoginPage(BasePage):
-    def __init__(self, master, controller=None, db=None):
+    def __init__(self, master, controller=None, db=None, app=None):
         super().__init__(master, bg=LOGIN_CONFIG["background_color"])
         self.controller = controller
+        self.db = db
+        self.app = app
 
         self.username_var = tk.StringVar()
         self.password_var = tk.StringVar()
@@ -27,7 +29,8 @@ class LoginPage(BasePage):
             fg=LOGIN_CONFIG["title_fg"],
             bg=LOGIN_CONFIG["background_color"]
         )
-        self.title_label.pack(pady=LOGIN_CONFIG["title_padding"])
+
+        self.title_label.create_component()
 
     def _create_label_frame(self):
         self.form_container = tk.LabelFrame(
@@ -115,8 +118,8 @@ class LoginPage(BasePage):
                 target_page = "admin" if role == "admin" else "enrolment"
                 print(f"[DEBUG][LoginPage] Routing by role={role} -> {target_page}")
                 self._clear_fields()
-                if self.controller and hasattr(self.controller, "navigate"):
-                    self.controller.navigate(target_page)
+                if self.app:
+                    self.app.navigate(target_page)
             else:
                 message = result.get("message") if isinstance(result, dict) else "Invalid credentials."
                 self._show_message("Login Error", message)

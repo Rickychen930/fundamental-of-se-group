@@ -9,6 +9,7 @@ from resources.parameters.app_parameters import APP_CONFIG
 from db.database import Database
 from controller.student_controller import StudentController
 from controller.admin_controller import AdminController
+import inspect
 
 class App:
     def __init__(self):
@@ -45,33 +46,28 @@ class App:
             self._show_error(f"Page '{page_name}' not found.")
             return
 
-        # Instantiate page with appropriate controller
-        if page_name == "splash":
-            self.current_page = page_class(self.root, on_continue=lambda: self.navigate("login"))
-        elif page_name in ["login", "register", "enrolment"]:
-            self.current_page = page_class(
-                self.root,
-                controller=self.student_controller,
-                app=self,
-                db=self.db
-            )
-        elif page_name == "admin":
-            self.current_page = page_class(
-                self.root,
-                controller=self.admin_controller,
-                app=self,
-                db=self.db
-            )
-        else:
-            self._show_error(f"No controller configured for page '{page_name}'")
-            return
+        # Prepare arguments based on constructor signature
+        kwargs = {"master": self.root}
+        sig = inspect.signature(page_class.__init__)
+        if "controller" in sig.parameters:
+            kwargs["controller"] = self.student_controller if page_name != "admin" else self.admin_controller
+        if "app" in sig.parameters:
+            kwargs["app"] = self
+        if "db" in sig.parameters:
+            kwargs["db"] = self.db
+        if page_name == "splash" and "on_continue" in sig.parameters:
+            kwargs["on_continue"] = lambda: self.navigate("login")
 
-        self.current_page.pack(fill="both", expand=True)
+        try:
+            self.current_page = page_class(**kwargs)
+            self.current_page.pack(fill="both", expand=True)
 
-        if hasattr(self.current_page, "render") and callable(self.current_page.render):
-            self.current_page.render()
+            if hasattr(self.current_page, "render") and callable(self.current_page.render):
+                self.current_page.render()
 
-        self._resize_window()
+            self._resize_window()
+        except Exception as e:
+            self._show_error(f"Failed to load page '{page_name}': {e}")
 
     def _resize_window(self):
         self.root.update_idletasks()

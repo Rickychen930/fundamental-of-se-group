@@ -8,9 +8,10 @@ from components.message_box_component import MessageBoxComponent
 from components.form_row_component import FormRowComponent  # Make sure this exists
 
 class EnrolmentPage(BasePage):
-    def __init__(self, master, controller=None):
+    def __init__(self, master, controller=None, app=None):
         super().__init__(master, bg="white", layout="grid")
         self.controller = controller
+        self.app = app
         self.student = getattr(controller, "current_student", None)
 
         self._init_vars()

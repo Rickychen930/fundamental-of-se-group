@@ -12,7 +12,6 @@ class FormField(Component):
         label_font=None,
         label_fg=None,
         label_bg=None,
-        input_height=None,
         input_width=None,
         input_font=None,
         input_fg=None,
@@ -22,6 +21,7 @@ class FormField(Component):
         layout=None,
         padding=None,
         autoselect=None,
+        show=None,
         **kwargs
     ):
         super().__init__(
@@ -36,7 +36,6 @@ class FormField(Component):
         self._label_fg = label_fg or FORM_FIELD_CONFIG["label_fg"]
         self._label_bg = label_bg or FORM_FIELD_CONFIG["label_bg"]
 
-        self._input_height = input_height if input_height is not None else FORM_FIELD_CONFIG["input_height"]
         self._input_width = input_width if input_width is not None else FORM_FIELD_CONFIG["input_width"]
         self._input_font = input_font or FORM_FIELD_CONFIG["input_font"]
         self._input_fg = input_fg or FORM_FIELD_CONFIG["input_fg"]
@@ -44,6 +43,7 @@ class FormField(Component):
         self._input_bd = input_bd if input_bd is not None else FORM_FIELD_CONFIG["input_bd"]
         self._input_relief = input_relief or FORM_FIELD_CONFIG["input_relief"]
         self._autoselect = autoselect if autoselect is not None else FORM_FIELD_CONFIG["autoselect"]
+        self._show = show
 
         self.label = None
         self.text_input = None
@@ -64,7 +64,6 @@ class FormField(Component):
 
         self.text_input = TextInputComponent(
             self.get_root(),
-            height=self._input_height,
             width=self._input_width,
             font=self._input_font,
             fg=self._input_fg,
@@ -73,7 +72,8 @@ class FormField(Component):
             relief=self._input_relief,
             layout=self.get_layout(),
             padding=self.get_padding(),
-            autoselect=self._autoselect
+            autoselect=self._autoselect,
+            show=self._show
         )
 
         self.label_widget = self.label.get_widget()

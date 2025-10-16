@@ -5,7 +5,8 @@ class LabelComponent(Component):
     def __init__(
         self,
         master,
-        text,
+        text=None,
+        textvariable=None,
         style=None,
         font=None,
         fg=None,
@@ -25,18 +26,25 @@ class LabelComponent(Component):
             **kwargs
         )
         self._text = text
+        self._textvariable = textvariable
         self._label = None
         self.create_component()
 
     def create_component(self):
         config = {
-            "text": self._text,
             "style": self.get_style()
         }
 
-        if self.get_font(): config["font"] = self.get_font()
-        if self.get_foreground(): config["foreground"] = self.get_foreground()
-        if self.get_background_color(): config["background"] = self.get_background_color()
+        if self._text is not None:
+            config["text"] = self._text
+        if self._textvariable is not None:
+            config["textvariable"] = self._textvariable
+        if self.get_font():
+            config["font"] = self.get_font()
+        if self.get_foreground():
+            config["foreground"] = self.get_foreground()
+        if self.get_background_color():
+            config["background"] = self.get_background_color()
 
         config.update(self.get_extra())
         self._label = self.get_ttk().Label(self.get_root(), **config)
@@ -54,5 +62,3 @@ class LabelComponent(Component):
 
     def get_widget(self):
         return self._label
-
-
