@@ -16,68 +16,91 @@ class StudentPage(BasePage):
             elif student_choice == 'x':
                 break
             else:
-                self.print_fail("Invalid choice.")
+                continue
 
     def register(self):
         print("\t\033[92mStudent Sign Up\033[0m")
 
+        # 1) Loop until email/password format is acceptable
         while True:
             email = input("\tEmail: ").strip()
             password = input("\tPassword: ").strip()
 
             valid, msg = self.controller.validate_credentials(email, password)
             if not valid:
+                # e.g. "Incorrect email or password format"
                 print(f"\t\033[91m{msg}\033[0m")
                 continue
 
+            # e.g. "email and password formats acceptable"
             print(f"\t\033[93m{msg}\033[0m")
             break
 
+        # 2) Ask for name (simple non-empty check optional)
         name = input("\tName: ").strip()
-        print(f"\t\033[93mEnrolling Student {name}\033[0m")
-        success, message = self.controller.register(name, email, password)
+        if not name:
+            print("\t\033[91mName cannot be empty.\033[0m")
+            return
 
-        if success and message:
-            print(f"\t\033[92m{message}\033[0m")
+        # 3) Call controller.register and print based on success/failure
+        try:
+            ok, msg = self.controller.register(name, email, password)
+            # Expected:
+            #  - ok=True,  msg="Enrolling Student John Smith"
+            #  - ok=False, msg="Student John Smith already exists"
+            color = "\033[92m" if ok else "\033[91m"
+            print(f"\t{color}{msg}\033[0m")
+        except Exception as ex:
+            # In case Student.create raises validation errors, etc.
+            print(f"\t\033[91mRegistration failed: {ex}\033[0m")
+
 
 
     def login(self):
         print("\t\033[92mStudent Sign In\033[0m")
         email = input("\tEmail: ").strip()
         password = input("\tPassword: ").strip()
-        success, _ = self.controller.login(email, password)
+
+        success, reason = self.controller.login(email, password)
+
         if success:
+            # Match the sample transcript: show this line before the course menu
+            print("\t\033[93memail and password formats acceptable\033[0m")
             self.subject_menu()
+            return
+
+        # Failure cases
+        if reason == "bad_format":
+            print("\t\033[91mIncorrect email or password format\033[0m")
+        elif reason == "no_such_user":
+            print("\t\033[93memail and password formats acceptable\033[0m")
+            print("\t\033[91mStudent does not exist\033[0m")
+        elif reason == "bad_password":
+            print("\t\033[93memail and password formats acceptable\033[0m")
+            print("\t\033[91mIncorrect password\033[0m")
         else:
-            self.print_fail("Invalid credentials.")
+            print("\t\033[91mInvalid credentials.\033[0m")
+
 
     def subject_menu(self):
         student = self.controller.current_student
         while True:
-            self.clear_screen()
-            print(f"--- Subject Menu for {student.name} ---")
-            print("(C) Change Password")
-            print("(E) Enrol Subject")
-            print("(S) Show Enrolled Subjects")
-            print("(R) Remove Subject")
-            print("(A) Show Average Mark")
-            print("(X) Exit")
-            choice = input("Choose: ").strip().lower()
+            # ✅ No end=... here; that's only for print()
+            choice = input("\t\033[96mStudent Course Menu (c/e/r/s/x): \033[0m").strip().lower()
 
-            if choice == 'c':
+            if choice == "c":
                 self.change_password(student)
-            elif choice == 'e':
-                self.enrol_subject(student)
-            elif choice == 's':
-                self.show_subjects(student)
-            elif choice == 'r':
-                self.remove_subject(student)
-            elif choice == 'a':
-                self.show_average(student)
-            elif choice == 'x':
+            elif choice == "e":
+                self._enrol_subject_flow(student)
+            elif choice == "r":
+                self._remove_subject_flow(student)
+            elif choice == "s":
+                self._show_subjects_flow(student)
+            elif choice == "x":
                 break
             else:
-                self.print_fail("Invalid choice.")
+                continue
+
 
     def change_password(self, student):
         new_password = input("New Password: ").strip()

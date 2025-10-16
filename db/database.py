@@ -6,6 +6,7 @@ class Database:
     def __init__(self):
         os.makedirs("db", exist_ok=True)
         self.path = os.path.join("db", "students.data")
+        print(f"[DB] Using {self.path}")  # keep this while debugging
         self._ensure_file()
 
     def _ensure_file(self):

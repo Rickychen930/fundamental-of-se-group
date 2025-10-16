@@ -4,35 +4,61 @@ from models.student_model import Student, students_from_dicts, students_to_dicts
 import re
 
 class StudentController:
-    def __init__(self, db: Database):
+    def __init__(self, db):
         self.db = db
         self.current_student: Optional[Student] = None
 
+    # --- helpers for validation ---
+    def _valid_email(self, email: str) -> bool:
+        return (
+            email.strip().lower().endswith("@university.com")
+            and re.match(r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$", email.strip()) is not None
+        )
+
+    def _valid_password(self, pw: str) -> bool:
+        # Example rule: ≥8 chars, at least one letter + one number
+        return len(pw) >= 8 and any(c.isalpha() for c in pw) and any(c.isdigit() for c in pw)
+
+    # --- main login method ---
     def login(self, email: str, password: str) -> Tuple[bool, Optional[str]]:
-        raw = self.db.read_from_file()
-        students = students_from_dicts(raw)
-        for student in students:
-            if student.email.strip().lower() == email.strip().lower() and student.verify_password(password):
-                print(f"[DEBUG][StudentController] Login success for {email}")
-                self.current_student = student
-                return True, "student"
-        print(f"[DEBUG][StudentController] Login failed for {email}")
-        return False, None
+        # 1) Validate formats
+        if not self._valid_email(email) or not self._valid_password(password):
+            return False, "bad_format"
 
-    def register(self, name: str, email: str, password: str):
+        # 2) Load students from DB
         raw = self.db.read_from_file()
         students = students_from_dicts(raw)
 
-        if any(s.email.strip().lower() == email.strip().lower() for s in students):
-            return False, f"Student {name} already exists."
+        # 3) Find matching student
+        for s in students:
+            if s.email.strip().lower() == email.strip().lower():
+                # found → check password
+                if s.verify_password(password):
+                    self.current_student = s
+                    return True, "student"
+                else:
+                    return False, "bad_password"
 
+        # 4) No student found
+        return False, "no_such_user"
+
+    def register(self, name: str, email: str, password: str) -> Tuple[bool, str]:
+        raw = self.db.read_from_file()                    # always re-read
+        students = students_from_dicts(raw)
+
+        email_norm = email.strip().lower()
+        existing = next((s for s in students if s.email.strip().lower() == email_norm), None)
+        if existing:
+            return False, f"Student {existing.name} already exists"   # exact wording
+
+        # Create and persist (Student.create now stores email in lowercase)
         new_student = Student.create(name, email, password)
         students.append(new_student)
 
+        # keep any non-student records as-is
         others = [d for d in raw if d.get("role") != "student"]
         self.db.write_to_file(others + students_to_dicts(students))
-
-        return True, f"Student {new_student.name} registered successfully"
+        return True, f"Enrolling Student {new_student.name}"
 
     
     def validate_credentials(self, email: str, password: str):
