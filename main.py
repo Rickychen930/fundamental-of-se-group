@@ -4,6 +4,7 @@ from views.register_page import RegisterPage
 from views.splash_page import SplashScreenPage
 from theme.style_config import setup_styles
 from resources.parameters.app_parameters import APP_CONFIG
+from views.dashboard_page import DashboardPage
 
 class MainPage:
     def __init__(self):
@@ -11,16 +12,21 @@ class MainPage:
         self._initialize_window()
         setup_styles()
 
+        # simple in-memory session (store logged-in user)
+        self.current_user = None
+
         # Available pages
         self.pages = {
             "splash": SplashScreenPage,
             "login": LoginPage,
-            "register": RegisterPage
+            "register": RegisterPage,
+            "dashboard": DashboardPage,
             # Add more pages here, e.g. "home": HomePage
         }
 
         self.current_page = None
         self.navigate("splash")
+
 
     def _initialize_window(self):
         self.root.title(APP_CONFIG["title"])
@@ -39,7 +45,7 @@ class MainPage:
         else:
             self.current_page = page_class(self.root, controller=self)
 
-        self.current_page.pack(fill="both", expand=True)
+        # self.current_page.pack(fill="both", expand=True)
 
         if hasattr(self.current_page, "render"):
             self.current_page.render()
@@ -52,12 +58,21 @@ class MainPage:
         min_height = max(height, 400)
 
         self.root.geometry(f"{min_width}x{min_height}+100+100")
-
+           
     def _clear_current_page(self):
         if self.current_page:
             self.current_page.pack_forget()
             self.current_page.destroy()
             self.current_page = None
+            # session
+    def set_user(self, user):
+            # save logged-in user in memory
+            self.current_user = user
+
+    def get_user(self):
+           # read the logged-in user
+        return self.current_user
+
 
     def run(self):
         self.root.mainloop()

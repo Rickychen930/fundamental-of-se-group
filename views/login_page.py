@@ -109,9 +109,13 @@ class LoginPage(BasePage):
         try:
             success, login_message = self.view_model.login()
             if success:
-                self._clear_fields()
+                self.controller.set_user(self.view_model.user)
+                
                 if self.controller and hasattr(self.controller, "navigate"):
-                    self.controller.navigate("home")
+                    # self.controller.navigate("home")
+                    self.controller.navigate("dashboard")
+                    self._clear_fields()
+
             else:
                 self._show_message("Login Error", login_message)
                 self._clear_fields()
@@ -130,6 +134,10 @@ class LoginPage(BasePage):
         )
         popup.show()
 
+   # def _clear_fields(self):
+        # self.username_field.input_widget.delete(0, tk.END)
+         # self.password_field.input_widget.delete(0, tk.END)
     def _clear_fields(self):
-        self.username_field.input_widget.delete(0, tk.END)
-        self.password_field.input_widget.delete(0, tk.END)
+        self.username_field.set_value("")
+        self.password_field.set_value("")
+
