@@ -1,14 +1,13 @@
 from tkinter import Frame
 from components.label_component import LabelComponent
 from components.progress_bar_component import ProgressBarComponent
-from views.base_page import BasePage
+from view.GUI.base_page import BasePage
 from resources.parameters.app_parameters import SPLASH_CONFIG
 
-
 class SplashScreenPage(BasePage):
-    def __init__(self, master, on_finish):
+    def __init__(self, master, on_continue):
         super().__init__(master)
-        self._on_finish = on_finish
+        self._on_continue = on_continue
         self.set_background_color(SPLASH_CONFIG["background_color"])
 
         self.center_frame = Frame(self, bg=self["bg"])
@@ -46,4 +45,5 @@ class SplashScreenPage(BasePage):
         self.progress.render()
 
     def finish_splash(self):
-        self._on_finish()
+        if callable(self._on_continue):
+            self._on_continue()

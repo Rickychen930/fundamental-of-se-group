@@ -1,10 +1,9 @@
-# db/database.py
 import os
 import pickle
+from typing import List
 
 class Database:
     def __init__(self):
-        # assignment requires students.data in a db/ folder
         os.makedirs("db", exist_ok=True)
         self.path = os.path.join("db", "students.data")
         self._ensure_file()
@@ -15,7 +14,7 @@ class Database:
             with open(self.path, "wb") as f:
                 pickle.dump([], f)
 
-    def read_from_file(self):
+    def read_from_file(self) -> List:
         try:
             with open(self.path, "rb") as f:
                 data = pickle.load(f)
@@ -25,15 +24,11 @@ class Database:
             print(f"[ERROR][DB] Failed reading {self.path}: {e}")
             return []
 
-    # backward-compat alias (some older code called this)
-    def read_data(self):
-        return self.read_from_file()
-
-    def write_to_file(self, data_list):
+    def write_to_file(self, data_list: List):
         try:
             with open(self.path, "wb") as f:
-                pickle.dump(list(data_list or []), f)
-            print(f"[DEBUG][DB] Wrote {len(data_list or [])} records to {self.path}")
+                pickle.dump(data_list, f)
+            print(f"[DEBUG][DB] Wrote {len(data_list)} records to {self.path}")
         except Exception as e:
             print(f"[ERROR][DB] Failed writing {self.path}: {e}")
 
