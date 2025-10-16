@@ -37,6 +37,7 @@ class StudentPage(BasePage):
     def login(self):
         email = input("Email: ").strip()
         password = input("Password: ").strip()
+        # password = getpass.getpass("Password: ").strip() hidden the password
         success, _ = self.controller.login(email, password)
         if success:
             self.subject_menu()
