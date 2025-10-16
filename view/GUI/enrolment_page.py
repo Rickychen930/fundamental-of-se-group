@@ -5,7 +5,6 @@ from components.label_component import LabelComponent
 from components.button_component import ButtonComponent
 from components.text_input_component import TextInputComponent
 from components.message_box_component import MessageBoxComponent
-from components.form_row_component import FormRowComponent  # Make sure this exists
 
 class EnrolmentPage(BasePage):
     def __init__(self, master, controller=None, app=None):
@@ -16,12 +15,9 @@ class EnrolmentPage(BasePage):
 
         self._init_vars()
         self._build_header()
-        self._build_subject_table()
-        self._build_enrol_section()
-        self._build_remove_section()
-        self._build_password_section()
+        self._build_action_buttons()
         self._build_footer()
-        self._refresh_view()
+        self._refresh_status()
 
     def _init_vars(self):
         self.info_var = tk.StringVar()
@@ -52,65 +48,25 @@ class EnrolmentPage(BasePage):
         else:
             self.info_var.set("Error: No student loaded.")
 
-    def _build_subject_table(self):
-        frame = tk.LabelFrame(self, text="Enrolled Subjects", bg="white")
-        frame.grid(row=2, column=0, columnspan=2, sticky="nsew", padx=12, pady=8)
-        frame.columnconfigure(0, weight=1)
-        frame.rowconfigure(0, weight=1)
+    def _build_action_buttons(self):
+        frame = tk.Frame(self, bg="white")
+        frame.grid(row=2, column=0, columnspan=2, sticky="ew", padx=12, pady=8)
+        frame.columnconfigure((0, 1, 2), weight=1)
 
-        self.tree = ttk.Treeview(frame, columns=("id", "title", "mark", "grade"), show="headings", height=8)
-        for col, label in [("id", "ID"), ("title", "Title"), ("mark", "Mark"), ("grade", "Grade")]:
-            self.tree.heading(col, text=label)
-            self.tree.column(col, anchor="center" if col != "title" else "w", width=80 if col != "title" else 260)
-        self.tree.grid(row=0, column=0, sticky="nsew")
+        actions = [
+            ("Add Enrollment", self._popup_enrol),
+            ("Show Enrollment", self._popup_subject_table),
+            ("Change Password", self._popup_password)
+        ]
 
-        yscroll = ttk.Scrollbar(frame, orient="vertical", command=self.tree.yview)
-        self.tree.configure(yscrollcommand=yscroll.set)
-        yscroll.grid(row=0, column=1, sticky="ns")
-
-    def _build_enrol_section(self):
-        frame = tk.LabelFrame(self, text="Enrol in a Subject", bg="white")
-        frame.grid(row=3, column=0, sticky="ew", padx=12, pady=8)
-        frame.columnconfigure(1, weight=1)
-
-        self.enrol_row = FormRowComponent(
-            frame,
-            label_text="Subject title:",
-            button_text="Enrol",
-            button_action=self._on_enrol
-        )
-        self.enrol_row.get_widget().grid(row=0, column=0, columnspan=3, sticky="ew")
-
-    def _build_remove_section(self):
-        frame = tk.LabelFrame(self, text="Remove a Subject", bg="white")
-        frame.grid(row=3, column=1, sticky="ew", padx=12, pady=8)
-        frame.columnconfigure(1, weight=1)
-
-        self.remove_row = FormRowComponent(
-            frame,
-            label_text="Subject ID:",
-            button_text="Remove",
-            button_action=self._on_remove
-        )
-        self.remove_row.get_widget().grid(row=0, column=0, columnspan=3, sticky="ew")
-
-    def _build_password_section(self):
-        frame = tk.LabelFrame(self, text="Change Password", bg="white")
-        frame.grid(row=4, column=0, columnspan=2, sticky="ew", padx=12, pady=8)
-        frame.columnconfigure(1, weight=1)
-
-        self.password_row = FormRowComponent(
-            frame,
-            label_text="New password:",
-            button_text="Update Password",
-            button_action=self._on_change_password,
-            show="*"
-        )
-        self.password_row.get_widget().grid(row=0, column=0, columnspan=3, sticky="ew")
+        for i, (label, command) in enumerate(actions):
+            btn = ButtonComponent(frame, name=label, action=command, layout="grid", padding=(6, 6))
+            btn.create_component()
+            btn.button_widget.grid(row=0, column=i, padx=6, pady=6, sticky="ew")
 
     def _build_footer(self):
         frame = tk.Frame(self, bg="white")
-        frame.grid(row=5, column=0, columnspan=2, sticky="ew", padx=12, pady=12)
+        frame.grid(row=3, column=0, columnspan=2, sticky="ew", padx=12, pady=12)
         frame.columnconfigure(0, weight=1)
         frame.columnconfigure(1, weight=1)
         frame.columnconfigure(2, weight=1)
@@ -136,56 +92,129 @@ class EnrolmentPage(BasePage):
         btn.create_component()
         btn.button_widget.grid(row=0, column=2, sticky="e")
 
-    def _refresh_view(self):
-        self.tree.delete(*self.tree.get_children())
+    def _refresh_status(self):
         if not self.student:
+            self.avg_var.set("Average: 0.00")
+            self.status_var.set("Status: -")
             return
-        for subj in self.student.subjects:
-            self.tree.insert("", "end", values=(subj.id, subj.title, subj.mark, subj.grade))
+
         avg = self.student.average_mark()
+        status = "PASS" if self.student.has_passed() else "FAIL"
         self.avg_var.set(f"Average: {avg:.2f}")
-        self.status_var.set(f"Status: {'PASS' if self.student.has_passed() else 'FAIL'}")
+        self.status_var.set(f"Status: {status}")
 
-    # ------------------ Actions ------------------
-    def _on_enrol(self):
-        title = self.enrol_row.get_input().get_text()
-        if not title:
-            self._show_message("Error", "Subject title cannot be empty.")
+    def _popup_subject_table(self):
+        if not self.student:
+            self._show_message("Error", "No student data available.")
             return
-        success, msg = self.controller.enrol_subject(title)
-        if success:
-            self.enrol_row.get_input().set_text("")
-            self._refresh_view()
-        else:
-            self._show_message("Enrol Error", msg)
 
-    def _on_remove(self):
-        sid = self.remove_row.get_input().get_text()
-        if not sid:
-            self._show_message("Error", "Enter a Subject ID to remove.")
-            return
-        success, msg = self.controller.remove_subject(sid)
-        if success:
-            self.remove_row.get_input().set_text("")
-            self._refresh_view()
-        else:
-            self._show_message("Remove Error", msg)
+        popup = tk.Toplevel(self)
+        popup.title("Enrolled Subjects")
+        popup.geometry("600x300")
+        popup.transient(self)
+        popup.grab_set()
 
-    def _on_change_password(self):
-        new_pw = self.password_row.get_input().get_text()
-        if not new_pw:
-            self._show_message("Error", "Enter a new password.")
-            return
-        success, msg = self.controller.change_password(new_pw)
-        if success:
-            self.password_row.get_input().set_text("")
-            self._show_message("Success", msg)
-        else:
-            self._show_message("Password Error", msg)
+        frame = tk.LabelFrame(popup, text="Subjects", bg="white")
+        frame.pack(fill="both", expand=True, padx=12, pady=12)
+        frame.columnconfigure(0, weight=1)
+        frame.rowconfigure(0, weight=1)
+
+        tree = ttk.Treeview(frame, columns=("id", "title", "mark", "grade"), show="headings", height=8)
+        for col, label in [("id", "ID"), ("title", "Title"), ("mark", "Mark"), ("grade", "Grade")]:
+            tree.heading(col, text=label)
+            tree.column(col, anchor="center" if col != "title" else "w", width=80 if col != "title" else 260)
+        tree.grid(row=0, column=0, sticky="nsew")
+
+        yscroll = ttk.Scrollbar(frame, orient="vertical", command=tree.yview)
+        tree.configure(yscrollcommand=yscroll.set)
+        yscroll.grid(row=0, column=1, sticky="ns")
+
+        for subj in self.student.subjects:
+            tree.insert("", "end", values=(subj.id, subj.title, subj.mark, subj.grade))
+
+        self._refresh_status()
+
+    def _popup_enrol(self):
+        popup = tk.Toplevel(self)
+        popup.title("Add Enrollment")
+        popup.geometry("320x160")
+        popup.transient(self)
+        popup.grab_set()
+
+        form_frame = tk.Frame(popup, bg="white")
+        form_frame.pack(padx=20, pady=20, fill="both", expand=True)
+
+        LabelComponent(form_frame, text="Subject Title:", bg="white").render()
+        input_field = TextInputComponent(form_frame)
+        input_field.render()
+        input_field.get_widget().pack(fill="x", pady=6)
+
+        def submit():
+            title = input_field.get_text()
+            if not title:
+                self._show_message("Error", "Subject title cannot be empty.")
+            else:
+                success, msg = self.controller.enrol_subject(title)
+                if success:
+                    self._refresh_status()
+                    popup.destroy()
+                else:
+                    self._show_message("Enrol Error", msg)
+
+        btn = ButtonComponent(form_frame, name="Submit", action=submit)
+        btn.create_component()
+        btn.button_widget.pack(pady=10)
+
+    def _popup_password(self):
+        popup = tk.Toplevel(self)
+        popup.title("Change Password")
+        popup.geometry("320x220")
+        popup.transient(self)
+        popup.grab_set()
+
+        form_frame = tk.Frame(popup, bg="white")
+        form_frame.pack(padx=20, pady=20, fill="both", expand=True)
+
+        LabelComponent(form_frame, text="New Password:", bg="white").render()
+        input_pw1 = TextInputComponent(form_frame, show="*")
+        input_pw1.render()
+        input_pw1.get_widget().pack(fill="x", pady=6)
+
+        LabelComponent(form_frame, text="Confirm Password:", bg="white").render()
+        input_pw2 = TextInputComponent(form_frame, show="*")
+        input_pw2.render()
+        input_pw2.get_widget().pack(fill="x", pady=6)
+
+        def submit():
+            pw1 = input_pw1.get_text()
+            pw2 = input_pw2.get_text()
+
+            if not pw1 or not pw2:
+                self._show_message("Error", "Both password fields must be filled.")
+                popup.destroy()
+                return
+
+            if pw1 != pw2:
+                self._show_message("Error", "Passwords do not match.")
+                popup.destroy()
+                return
+
+            success, msg = self.controller.change_password(pw1)
+            if success:
+                self._show_message("Success", msg)
+            else:
+                self._show_message("Password Error", msg)
+            popup.destroy()
+
+        btn = ButtonComponent(form_frame, name="Update", action=submit)
+        btn.create_component()
+        btn.button_widget.pack(pady=10)
 
     def _on_logout(self):
-        self.controller.logout()
-        self.controller.navigate("login")
+        target_page = "login"
+        print(f"[DEBUG][Enrollment Page] -> {target_page}")
+        if self.app:
+            self.app.navigate(target_page)
 
     def _show_message(self, title, message):
         popup = MessageBoxComponent(self.master, title=title, message=message, width=400, height=200, modal=True)
