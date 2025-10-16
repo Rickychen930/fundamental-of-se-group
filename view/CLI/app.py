@@ -14,24 +14,29 @@ class App:
         self.student_page = StudentPage(self.student_controller)
 
     def run(self):
+        self._clear_screen()
         while True:
-            self._clear_screen()
-            print("=== University Menu ===")
-            print("(A) Admin")
-            print("(S) Student")
-            print("(X) Exit")
-            choice = input("Choose: ").strip().upper()
+            # University System prompt
+            print("\033[96mUniversity System: (A)dmin, (S)tudent, or X : ", end="")
+            choice = input().strip().upper()
 
+            # Admin system entry point
             if choice == 'A':
                 self.admin_page.show()
+
+            # Student system entry point
             elif choice == 'S':
                 self.student_page.show()
+
+            # Exit menu
             elif choice == 'X':
-                print("Goodbye!")
+                print("\033[93mThank You\033[0m")
                 break
+            
+            # Loop back to menu if incorrect selection
             else:
-                self._print_fail("Invalid choice.")
-                self._pause()
+                continue
+        
 
     def _clear_screen(self):
         # Works on most terminals

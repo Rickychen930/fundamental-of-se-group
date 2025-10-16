@@ -7,20 +7,20 @@ class AdminPage(BasePage):
 
     def show(self):
         while True:
-            self.clear_screen()
-            print("--- Admin Menu ---")
-            print("(C) Clear Database")
-            print("(G) Group Students by Grade")
-            print("(P) Partition Students (PASS/FAIL)")
-            print("(R) Remove Student by ID")
-            print("(S) Show All Students")
-            print("(X) Exit")
-            choice = input("Choose: ").lower()
+            print("\t\033[96mAdmin System (c/g/p/r/s/x): ", end="")
+            choice = input().strip().lower()
 
             if choice == 'c':
-                self.controller.clear_all_students()
-                self.print_success("Database cleared.")
-                self.pause()
+                print("\t\033[93mClearing students database\033[0m")  # Yellow text
+                confirm = input("\t\033[91mAre you sure you want to clear the database (Y)ES/(N)O: \033[0m").strip().upper()
+
+                if confirm == 'Y':
+                    self.controller.clear_all_students()
+                    print("\t\033[93mStudents data cleared\033[0m")  # Yellow final message
+                    continue
+                else:
+                    continue
+
             elif choice == 'g':
                 self.group_by_grade()
             elif choice == 'p':
@@ -29,47 +29,61 @@ class AdminPage(BasePage):
                 self.remove_student()
             elif choice == 's':
                 self.show_all()
+                continue
             elif choice == 'x':
                 break
             else:
                 self.print_fail("Invalid choice.")
-                self.pause()
+
 
     def group_by_grade(self):
         grouped = self.controller.group_by_grade()
-        if not grouped:
-            print("No grade data available.")
-        else:
-            for grade, students in grouped.items():
-                names = [s.name for s in students]
-                print(f"{grade}: {', '.join(names)}")
-        self.pause()
+
+        # Check if there’s any grade data
+        if not grouped or all(len(students) == 0 for students in grouped.values()):
+            print("\t\t< Nothing to Display >")
+            return
+
+        print("\t\033[93mGrade Grouping\033[0m")
+        for grade, students in grouped.items():
+            if not students:
+                continue
+            details = []
+            for s in students:
+                avg = s.average_mark()
+                details.append(f"{s.name} :: {s.id} --> GRADE: {grade} - MARK: {avg:.2f}")
+            print(f"\t{grade}  -->  [{', '.join(details)}]")
+
 
     def partition(self):
         partitioned = self.controller.partition_pass_fail()
-        if not partitioned:
-            print("No student data available.")
-        else:
-            for status, students in partitioned.items():
-                for s in students:
-                    color = Fore.GREEN if status == "PASS" else Fore.RED
-                    print(color + f"{s.name} - {status}")
-        self.pause()
+        if not partitioned or all(len(students) == 0 for students in partitioned.values()):
+            print("\t\t< Nothing to Display >")
+            return
+
+        print("\t\033[93mPartitioned by Pass/Fail\033[0m")
+        for status, students in partitioned.items():
+            if not students:
+                continue
+            for s in students:
+                color = Fore.GREEN if status == "PASS" else Fore.RED
+                print(color + f"{s.name} - {status}")
+
 
     def remove_student(self):
-        sid = input("Enter Student ID to remove: ")
+        sid = input("\tRemove by ID: ")
         removed = self.controller.remove_student_by_id(sid)
         if removed:
-            self.print_success(f"Student {sid} removed.")
+            self.print_success(f"\tRemoving Student {sid} Account")
         else:
-            self.print_fail(f"Student {sid} not found.")
-        self.pause()
+            self.print_fail(f"\tStudent {sid} does not exist")
 
     def show_all(self):
         students = self.controller.list_students()
         if not students:
-            print("No students found.")
+            print("\t\t < Nothing to Display >")
         else:
+            print("\t\033[93mStudent List\033[0m")  # Yellow header
             for s in students:
-                print(f"{s['id']} - {s['name']} - {s['email']}")
-        self.pause()
+                # Example: John Smith :: 673358 --> Email: john.smith@university.com
+                print(f"\t{s['name']}  ::  {s['id']}  -->  Email: {s['email']}")

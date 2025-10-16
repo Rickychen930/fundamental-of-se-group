@@ -1,46 +1,64 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import List, Tuple
+from typing import Optional, List, Tuple
+
 from models.user_model import User
 from models.student_model import Student
 from models.subject_model import grade_from_mark
 
-def overall_grade_for(student: Student) -> str:
-    avg = int(round(student.average_mark()))
-    return grade_from_mark(avg)
+
+# --- SINGLE, SAFE, MODULE-LEVEL FUNCTION (this is what controllers import) ---
+def overall_grade_for(student: Student) -> Optional[str]:
+    """
+    Returns a grade code based on the student's overall average, or None
+    if the student has no subjects/marks yet.
+    """
+    avg = student.average_mark()
+    if avg is None:
+        return None
+    return grade_from_mark(int(round(avg)))
+
 
 @dataclass
 class Admin(User):
     @staticmethod
-    def create(name: str, email: str, password: str) -> Admin:
+    def create(name: str, email: str, password: str) -> "Admin":
         if not User.validate_email(email):
             raise ValueError("Email must end with @university.com.")
-        return Admin(id="000000", name=name.strip(), email=email.strip(),
-                     password=password.strip(), role="admin")
+        return Admin(
+            id="000000",
+            name=name.strip(),
+            email=email.strip(),
+            password=password.strip(),
+            role="admin",
+        )
 
     def list_students(self, students: List[Student]) -> List[dict]:
-        return [{
-            "id": s.id,
-            "name": s.name,
-            "email": s.email,
-            "subjects_count": len(s.subjects),
-            "avg": round(s.average_mark(), 2),
-            "grade": overall_grade_for(s)
-        } for s in students]
-
-    def group_by_grade(self, students: List[Student]) -> dict:
-        buckets = {"HD": [], "D": [], "C": [], "P": [], "Z": []}
+        result = []
         for s in students:
-            grade = overall_grade_for(s)
-            buckets[grade].append(s)
-        return buckets
+            avg = s.average_mark()  # may be None
+            result.append({
+                "id": s.id,
+                "name": s.name,
+                "email": s.email,
+                "subjects_count": len(s.subjects),
+                "avg": None if avg is None else round(avg, 2),
+                "grade": overall_grade_for(s),  # safe
+            })
+        return result
 
-    def partition_pass_fail(self, students: List[Student]) -> dict:
+    def partition_pass_fail(self, students: list[Student]) -> dict:
         result = {"PASS": [], "FAIL": []}
         for s in students:
-            key = "PASS" if s.has_passed() else "FAIL"
-            result[key].append(s)
+            avg = s.average_mark()
+            if avg is None:
+                continue  # <- don't count unenrolled/unassessed students
+            if avg >= 50.0:
+                result["PASS"].append(s)
+            else:
+                result["FAIL"].append(s)
         return result
+
 
     def remove_student_by_id(self, students: List[Student], student_id: str) -> Tuple[List[Student], bool]:
         sid = student_id.strip()

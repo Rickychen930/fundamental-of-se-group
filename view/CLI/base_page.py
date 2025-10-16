@@ -8,9 +8,6 @@ class BasePage:
     def clear_screen(self):
         os.system('cls' if platform.system() == 'Windows' else 'clear')
 
-    def pause(self):
-        input("\nPress Enter to continue...")
-
     def print_fail(self, message):
         print(Fore.RED + message)
 

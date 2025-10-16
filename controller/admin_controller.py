@@ -1,5 +1,5 @@
 from db.database import Database
-from models.admin_model import Admin
+from models.admin_model import Admin, overall_grade_for
 from models.student_model import Student, students_from_dicts, students_to_dicts
 
 class AdminController:
@@ -22,7 +22,16 @@ class AdminController:
     def group_by_grade(self):
         raw = self.db.read_from_file()
         students = students_from_dicts(raw)
-        return self.admin.group_by_grade(students)
+
+        buckets: dict[str, list[Student]] = {}
+        for s in students:
+            grade = overall_grade_for(s)   # may be None now
+            if grade is None:
+                continue                   # skip students with no subjects
+            buckets.setdefault(grade, []).append(s)
+
+        return buckets
+
 
     def partition_pass_fail(self):
         raw = self.db.read_from_file()
@@ -40,7 +49,6 @@ class AdminController:
         return removed
 
     def clear_all_students(self):
-        raw = self.db.read_from_file()
-        others = [d for d in raw if d.get("role") != "student"]
-        self.db.write_to_file(others)
+        """Remove all student records from the data file."""
+        self.db.clear_all()
         return True

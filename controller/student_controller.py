@@ -1,6 +1,7 @@
 from typing import Optional, Tuple
 from db.database import Database
 from models.student_model import Student, students_from_dicts, students_to_dicts
+import re
 
 class StudentController:
     def __init__(self, db: Database):
@@ -18,18 +19,37 @@ class StudentController:
         print(f"[DEBUG][StudentController] Login failed for {email}")
         return False, None
 
-    def register(self, name: str, email: str, password: str) -> Tuple[bool, str]:
+    def register(self, name: str, email: str, password: str):
         raw = self.db.read_from_file()
         students = students_from_dicts(raw)
+
         if any(s.email.strip().lower() == email.strip().lower() for s in students):
-            return False, "Student already exists."
+            return False, f"Student {name} already exists."
+
         new_student = Student.create(name, email, password)
         students.append(new_student)
 
-        # Preserve non-student records
         others = [d for d in raw if d.get("role") != "student"]
         self.db.write_to_file(others + students_to_dicts(students))
-        return True, f"Registered {new_student.name} (ID {new_student.id})"
+
+        return True, f"Student {new_student.name} registered successfully"
+
+    
+    def validate_credentials(self, email: str, password: str):
+        """
+        Validate email and password format according to assignment rules.
+        Returns (bool, message)
+        """
+        # Email validation
+        if not email.lower().endswith("@university.com"):
+            return False, "Incorrect email or password format"
+
+        # Password pattern: Uppercase + at least 5 letters + 3+ digits
+        pattern = r"^[A-Z][a-zA-Z]{5,}[0-9]{3,}$"
+        if not re.match(pattern, password):
+            return False, "Incorrect email or password format"
+
+        return True, "email and password formats acceptable"
 
     def save_current(self):
         if not self.current_student:

@@ -53,13 +53,14 @@ class Student(User):
             raise ValueError("Password must start with an uppercase, have ≥5 letters, then ≥3 digits.")
         self.password = new_password.strip()
 
-    def average_mark(self) -> float:
+    def average_mark(self) -> Optional[float]:
         if not self.subjects:
-            return 0.0
-        return sum(s.mark for s in self.subjects) / len(self.subjects)
+            return None
+        return sum(subj.mark for subj in self.subjects) / len(self.subjects)
 
     def has_passed(self) -> bool:
-        return self.average_mark() >= 50.0
+        avg = self.average_mark()
+        return bool(avg is not None and avg >= 50.0)
 
     def to_dict(self) -> dict:
         return {

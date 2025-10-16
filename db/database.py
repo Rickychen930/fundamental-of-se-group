@@ -18,7 +18,6 @@ class Database:
         try:
             with open(self.path, "rb") as f:
                 data = pickle.load(f)
-                print(f"[DEBUG][DB] Read {len(data)} records from {self.path}")
                 return data
         except Exception as e:
             print(f"[ERROR][DB] Failed reading {self.path}: {e}")
@@ -28,10 +27,9 @@ class Database:
         try:
             with open(self.path, "wb") as f:
                 pickle.dump(data_list, f)
-            print(f"[DEBUG][DB] Wrote {len(data_list)} records to {self.path}")
         except Exception as e:
             print(f"[ERROR][DB] Failed writing {self.path}: {e}")
 
     def clear_all(self):
         self.write_to_file([])
-        print("[DEBUG][DB] Cleared all records")
+        
