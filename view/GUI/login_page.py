@@ -16,21 +16,9 @@ class LoginPage(BasePage):
         self.username_var = tk.StringVar()
         self.password_var = tk.StringVar()
 
-        self._create_title()
         self._create_label_frame()
         self._create_form_fields()
         self._create_buttons()
-
-    def _create_title(self):
-        self.title_label = LabelComponent(
-            self,
-            text=LOGIN_CONFIG["title_text"],
-            font=LOGIN_CONFIG["title_font"],
-            fg=LOGIN_CONFIG["title_fg"],
-            bg=LOGIN_CONFIG["background_color"]
-        )
-
-        self.title_label.create_component()
 
     def _create_label_frame(self):
         self.form_container = tk.LabelFrame(
@@ -64,6 +52,10 @@ class LoginPage(BasePage):
 
         self.password_field.label_widget.grid(row=1, column=0, sticky="w", padx=5, pady=5)
         self.password_field.input_widget.grid(row=1, column=1, sticky="ew", padx=5, pady=5)
+
+        # 🔑 Enter key behavior
+        self.username_field.input_widget.bind("<Return>", lambda e: self.password_field.input_widget.focus_set())
+        self.password_field.input_widget.bind("<Return>", lambda e: self._handle_login())
 
     def _create_buttons(self):
         self.cancel_button = ButtonComponent(

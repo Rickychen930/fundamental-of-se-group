@@ -1,6 +1,5 @@
 from tkinter import Tk
 from view.GUI.login_page import LoginPage
-from view.GUI.register_page import RegisterPage
 from view.GUI.splash_page import SplashScreenPage
 from view.GUI.enrolment_page import EnrolmentPage
 
@@ -26,7 +25,6 @@ class App:
         self.pages = {
             "splash": SplashScreenPage,
             "login": LoginPage,
-            "register": RegisterPage,
             "enrolment": EnrolmentPage,
         }
 
