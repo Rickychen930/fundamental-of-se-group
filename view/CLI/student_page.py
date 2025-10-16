@@ -1,8 +1,13 @@
 from view.CLI.base_page import BasePage
+from controller.subject_controller import SubjectController
+from db.database import Database
+
 
 class StudentPage(BasePage):
     def __init__(self, controller):
+        self.db = Database()
         self.controller = controller
+        self.subjects = SubjectController(self.db)
 
     def show(self):
         while True:
@@ -66,6 +71,7 @@ class StudentPage(BasePage):
         if success:
             # Match the sample transcript: show this line before the course menu
             print("\t\033[93memail and password formats acceptable\033[0m")
+            self.subjects.set_current_student(self.controller.current_student)
             self.subject_menu()
             return
 
@@ -102,45 +108,49 @@ class StudentPage(BasePage):
                 continue
 
 
-    def change_password(self, student):
-        new_password = input("New Password: ").strip()
-        confirm_password = input("Re-enter New Password: ").strip()
-        if new_password != confirm_password:
-            self.print_fail("Passwords do not match.")
+    def _enrol_subject_flow(self, student):
+        ok, msg, sub = self.subjects.enrol_auto()
+        if ok:
+            print(f"\t\033[93m{msg}\033[0m")
+        else:
+            print(f"\t\033[91m{msg}\033[0m")
+
+    def _show_subjects_flow(self, student):
+        items = self.subjects.list_subjects()
+        print(f"\tShowing {len(items)} subject{'s' if len(items)!=1 else ''}")
+        for s in items:
+            print(f"\t[  {s.title}  -- mark = {s.mark} -- grade =  {s.grade}  ]")
+
+    def _remove_subject_flow(self, student):
+        items = self.subjects.list_subjects()
+        if not items:
+            print("\t\033[93mNo subjects to remove.\033[0m")
             return
 
-        try:
-            student.change_password(new_password)
-            self.controller.save_current()
-            self.print_success("Password updated successfully.")
-        except ValueError as e:
-            self.print_fail(f"Error: {e}")
+        for s in items:
+            print(f"\t[ id={s.id}  title={s.title}  mark={s.mark}  grade={s.grade} ]")
 
-    def enrol_subject(self, student):
-        title = input("Subject Title: ").strip()
-        try:
-            subject = student.enrol_subject(title)
-            self.controller.save_current()
-            self.print_success(f"Enrolled in '{subject.title}' with mark {subject.mark} and grade {subject.grade}.")
-        except ValueError as e:
-            self.print_fail(f"Error: {e}")
-
-    def show_subjects(self, student):
-        if not student.subjects:
-            print("No subjects enrolled.")
+        sid = input("\tRemove Subject by ID: ").strip()
+        print(f"\tDroping {sid}")
+        ok, msg = self.subjects.remove_by_id(sid)
+        if ok:
+            print(f"\t\033[93m{msg}\033[0m")
         else:
-            print("\n--- Enrolled Subjects ---")
-            for s in student.subjects:
-                print(f"[{s.id}] {s.title} - Mark: {s.mark} - Grade: {s.grade}")
-            print(f"\nAverage: {student.average_mark():.2f}")
+            print(f"\t\033[91m{msg}\033[0m")
 
-    def remove_subject(self, student):
-        subject_id = input("Enter Subject ID to remove: ").strip()
-        if student.remove_subject(subject_id):
-            self.controller.save_current()
-            self.print_success(f"Subject '{subject_id}' removed.")
+    def change_password(self, student):
+        print("\t\033[96mUpdating password")
+        new_pwd = input("\tNew Password: ").strip()
+        confirm = input("\tConfirm Password: ").strip()
+        ok, msg = self.subjects.change_password(new_pwd, confirm)
+        if ok:
+            print(f"\t\033[93m{msg}\033[0m")
         else:
-            self.print_fail(f"Subject '{subject_id}' not found.")
+            print(f"\t\033[91m{msg}\033[0m")
 
     def show_average(self, student):
-        print(f"Average mark: {student.average_mark():.2f}")
+        avg = self.subjects.average()
+        if avg is None:
+            print("\t\033[93mNo subjects yet; average unavailable.\033[0m")
+        else:
+            print(f"\tAverage mark = {avg:.2f}")
