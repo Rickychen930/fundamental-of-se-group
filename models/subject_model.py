@@ -10,7 +10,7 @@ def grade_from_mark(mark: int) -> str:
     if mark >= 75: return "D"
     if mark >= 65: return "C"
     if mark >= 50: return "P"
-    return "Z"
+    return "F"
 
 @dataclass
 class Subject:

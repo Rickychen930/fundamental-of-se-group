@@ -1,3 +1,4 @@
+from __future__ import annotations
 from view.CLI.base_page import BasePage
 from colorama import Fore
 
@@ -9,41 +10,35 @@ class AdminPage(BasePage):
         while True:
             print("\t\033[96mAdmin System (c/g/p/r/s/x): ", end="")
             choice = input().strip().lower()
-
             if choice == 'c':
-                print("\t\033[93mClearing students database\033[0m")  # Yellow text
-                confirm = input("\t\033[91mAre you sure you want to clear the database (Y)ES/(N)O: \033[0m").strip().upper()
-
-                if confirm == 'Y':
-                    self.controller.clear_all_students()
-                    print("\t\033[93mStudents data cleared\033[0m")  # Yellow final message
-                    continue
-                else:
-                    continue
-
+                self._clear_students_flow()
             elif choice == 'g':
-                self.group_by_grade()
+                self.show_group_by_grade()
             elif choice == 'p':
-                self.partition()
+                self.show_partition()
             elif choice == 'r':
-                self.remove_student()
+                self.remove_student_flow()
             elif choice == 's':
                 self.show_all()
-                continue
             elif choice == 'x':
                 break
             else:
                 self.print_fail("Invalid choice.")
 
+    # -------- UI flows --------
+    def _clear_students_flow(self):
+        print("\t\033[93mClearing students database\033[0m")
+        confirm = input("\t\033[91mAre you sure you want to clear the database (Y)ES/(N)O: \033[0m").strip().upper()
+        if confirm == 'Y':
+            ok = self.controller.clear_all_students()
+            if ok:
+                print("\t\033[93mStudents data cleared\033[0m")
 
-    def group_by_grade(self):
+    def show_group_by_grade(self):
         grouped = self.controller.group_by_grade()
-
-        # Check if there’s any grade data
-        if not grouped or all(len(students) == 0 for students in grouped.values()):
+        if not grouped or all(len(v) == 0 for v in grouped.values()):
             print("\t\t< Nothing to Display >")
             return
-
         print("\t\033[93mGrade Grouping\033[0m")
         for grade, students in grouped.items():
             if not students:
@@ -51,27 +46,22 @@ class AdminPage(BasePage):
             details = []
             for s in students:
                 avg = s.average_mark()
-                details.append(f"{s.name} :: {s.id} --> GRADE: {grade} - MARK: {avg:.2f}")
+                details.append(f"{s.name} :: {s.id} --> GRADE: {grade} - MARK: {avg:.2f}" if avg is not None else f"{s.name} :: {s.id} --> GRADE: {grade}")
             print(f"\t{grade}  -->  [{', '.join(details)}]")
 
-
-    def partition(self):
+    def show_partition(self):
         partitioned = self.controller.partition_pass_fail()
-        if not partitioned or all(len(students) == 0 for students in partitioned.values()):
+        if not partitioned or all(len(v) == 0 for v in partitioned.values()):
             print("\t\t< Nothing to Display >")
             return
-
         print("\t\033[93mPartitioned by Pass/Fail\033[0m")
         for status, students in partitioned.items():
-            if not students:
-                continue
             for s in students:
                 color = Fore.GREEN if status == "PASS" else Fore.RED
-                print(color + f"{s.name} - {status}")
+                print(color + f"\t{s.name} - {status}")
 
-
-    def remove_student(self):
-        sid = input("\tRemove by ID: ")
+    def remove_student_flow(self):
+        sid = input("\tRemove by ID: ").strip()
         removed = self.controller.remove_student_by_id(sid)
         if removed:
             self.print_success(f"\tRemoving Student {sid} Account")
@@ -79,11 +69,10 @@ class AdminPage(BasePage):
             self.print_fail(f"\tStudent {sid} does not exist")
 
     def show_all(self):
-        students = self.controller.list_students()
+        students = self.controller.list_students()  # list of dicts
         if not students:
             print("\t\t < Nothing to Display >")
-        else:
-            print("\t\033[93mStudent List\033[0m")  # Yellow header
-            for s in students:
-                # Example: John Smith :: 673358 --> Email: john.smith@university.com
-                print(f"\t{s['name']}  ::  {s['id']}  -->  Email: {s['email']}")
+            return
+        print("\t\033[93mStudent List\033[0m")
+        for s in students:
+            print(f"\t{s['name']}  ::  {s['id']}  -->  Email: {s['email']}")

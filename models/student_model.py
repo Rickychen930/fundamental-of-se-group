@@ -13,7 +13,8 @@ class Student(User):
     subjects: List[Subject] = field(default_factory=list)
 
     @staticmethod
-    def create(name: str, email: str, password: str) -> Student:
+    def create(name: str, email: str, password: str) -> "Student":
+        # Delegate format rules to User validators (single source of truth)
         if not User.validate_email(email):
             raise ValueError("Email must end with @university.com.")
         if not User.validate_password(password):
@@ -21,12 +22,13 @@ class Student(User):
         return Student(
             id=gen_student_id(),
             name=name.strip(),
-            email=email.strip(),
+            email=email.strip().lower(),   # normalize for uniqueness
             password=password.strip(),
             role="student",
             subjects=[]
         )
 
+    # --- Domain rules live in the model ---
     def enrol_subject(self, title: str) -> Subject:
         if len(self.subjects) >= MAX_SUBJECTS:
             raise ValueError("Cannot enrol in more than four (4) subjects.")
@@ -73,7 +75,7 @@ class Student(User):
         }
 
     @staticmethod
-    def from_dict(data: dict) -> Student:
+    def from_dict(data: dict) -> "Student":
         return Student(
             id=data["id"],
             name=data["name"],
@@ -83,8 +85,8 @@ class Student(User):
             subjects=[Subject.from_dict(s) for s in data.get("subjects", [])]
         )
 
-def students_from_dicts(data: list[dict]) -> list[Student]:
+def students_from_dicts(data: list[dict]) -> list["Student"]:
     return [Student.from_dict(d) for d in data if d.get("role") == "student"]
 
-def students_to_dicts(students: list[Student]) -> list[dict]:
+def students_to_dicts(students: list["Student"]) -> list[dict]:
     return [s.to_dict() for s in students]
