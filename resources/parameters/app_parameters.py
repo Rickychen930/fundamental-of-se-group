@@ -194,3 +194,13 @@ MESSAGEBOX_CONFIG = {
     "message_style": "MessageBoxText.TLabel"
 }
 
+# Subject catalog 
+SUBJECT_CATALOG = [
+    "Mathematics",
+    "Physics",
+    "Chemistry",
+    "Biology",
+    "English",
+    "Programming",
+]
+
