@@ -1,4 +1,4 @@
-from view.base_page import BasePage
+from view.CLI.base_page import BasePage
 
 class StudentPage(BasePage):
     def __init__(self, controller):
@@ -27,21 +27,22 @@ class StudentPage(BasePage):
         name = input("Name: ")
         email = input("Email: ")
         password = input("Password: ")
-        result = self.controller.register(name, email, password)
-        print(result)
+        success, message = self.controller.register(name, email, password)
+        print(message)
         self.pause()
 
     def login(self):
         email = input("Email: ")
         password = input("Password: ")
-        student = self.controller.login(email, password)
-        if student:
-            self.subject_menu(student)
+        success, _ = self.controller.login(email, password)
+        if success:
+            self.subject_menu()
         else:
             self.print_fail("Invalid credentials.")
             self.pause()
 
-    def subject_menu(self, student):
+    def subject_menu(self):
+        student = self.controller.current_student
         while True:
             self.clear_screen()
             print(f"--- Subject Menu for {student.name} ---")
@@ -54,25 +55,41 @@ class StudentPage(BasePage):
             choice = input("Choose: ").lower()
 
             if choice == 'c':
-                student.password = input("New Password: ")
-                self.controller.update(student)
-                self.print_success("Password updated.")
+                new_password = input("New Password: ")
+                try:
+                    student.change_password(new_password)
+                    self.controller.save_current()
+                    self.print_success("Password updated.")
+                except ValueError as e:
+                    self.print_fail(str(e))
                 self.pause()
             elif choice == 'e':
-                print(student.enrol_subject())
-                self.controller.update(student)
+                title = input("Subject Title: ")
+                try:
+                    subject = student.enrol_subject(title)
+                    self.controller.save_current()
+                    print(f"Enrolled in {subject.title} with mark {subject.mark} and grade {subject.grade}")
+                except ValueError as e:
+                    self.print_fail(str(e))
                 self.pause()
             elif choice == 's':
-                print(student.show_subjects())
-                print(f"Average: {student.average_mark:.2f}")
+                if not student.subjects:
+                    print("No subjects enrolled.")
+                else:
+                    for s in student.subjects:
+                        print(f"[{s.id}] {s.title} - Mark: {s.mark} - Grade: {s.grade}")
+                    print(f"Average: {student.average_mark():.2f}")
                 self.pause()
             elif choice == 'r':
                 subject_id = input("Enter Subject ID to remove: ")
-                print(student.remove_subject(subject_id))
-                self.controller.update(student)
+                if student.remove_subject(subject_id):
+                    self.controller.save_current()
+                    self.print_success(f"Subject {subject_id} removed.")
+                else:
+                    self.print_fail(f"Subject {subject_id} not found.")
                 self.pause()
             elif choice == 'a':
-                print(f"Average mark: {student.average_mark:.2f}")
+                print(f"Average mark: {student.average_mark():.2f}")
                 self.pause()
             elif choice == 'x':
                 break

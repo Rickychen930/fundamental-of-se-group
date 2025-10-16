@@ -1,17 +1,15 @@
-# views/login_page.py
 import tkinter as tk
 from components.form_field_component import FormField
 from components.button_component import ButtonComponent
+from components.label_component import LabelComponent
 from components.message_box_component import MessageBoxComponent
-from view_models.login_view_model import LoginViewModel
 from resources.parameters.app_parameters import LOGIN_CONFIG
-from views.base_page import BasePage
+from view.GUI.base_page import BasePage
 
 class LoginPage(BasePage):
     def __init__(self, master, controller=None, db=None):
         super().__init__(master, bg=LOGIN_CONFIG["background_color"])
         self.controller = controller
-        self.view_model = LoginViewModel(db)
 
         self.username_var = tk.StringVar()
         self.password_var = tk.StringVar()
@@ -22,26 +20,36 @@ class LoginPage(BasePage):
         self._create_buttons()
 
     def _create_title(self):
-        self.title_label = tk.Label(
-            self, text=LOGIN_CONFIG["title_text"], font=LOGIN_CONFIG["title_font"],
-            fg=LOGIN_CONFIG["title_fg"], bg=LOGIN_CONFIG["background_color"]
+        self.title_label = LabelComponent(
+            self,
+            text=LOGIN_CONFIG["title_text"],
+            font=LOGIN_CONFIG["title_font"],
+            fg=LOGIN_CONFIG["title_fg"],
+            bg=LOGIN_CONFIG["background_color"]
         )
         self.title_label.pack(pady=LOGIN_CONFIG["title_padding"])
 
     def _create_label_frame(self):
         self.form_container = tk.LabelFrame(
-            self, text=LOGIN_CONFIG["subtitle_text"], bg=LOGIN_CONFIG["background_color"],
-            fg=LOGIN_CONFIG["subtitle_fg"], font=LOGIN_CONFIG["subtitle_font"], padx=20, pady=20
+            self,
+            text=LOGIN_CONFIG["subtitle_text"],
+            bg=LOGIN_CONFIG["background_color"],
+            fg=LOGIN_CONFIG["subtitle_fg"],
+            font=LOGIN_CONFIG["subtitle_font"],
+            padx=20,
+            pady=20
         )
         self.form_container.pack(pady=10)
         self.form_container.columnconfigure(0, weight=1)
         self.form_container.columnconfigure(1, weight=3)
 
     def _create_form_fields(self):
-        # label should read Email per brief
-        email_cfg = self._field_config("username"); email_cfg["label_text"] = "Email"
+        email_cfg = self._field_config("username")
+        email_cfg["label_text"] = "Email"
         self.username_field = FormField(self.form_container, textvariable=self.username_var, **email_cfg)
-        pwd_cfg = self._field_config("password"); pwd_cfg["show"] = "*"
+
+        pwd_cfg = self._field_config("password")
+        pwd_cfg["show"] = "*"
         self.password_field = FormField(self.form_container, textvariable=self.password_var, **pwd_cfg)
 
         self.username_field.create_component()
@@ -56,15 +64,24 @@ class LoginPage(BasePage):
 
     def _create_buttons(self):
         self.cancel_button = ButtonComponent(
-            self.form_container, name=LOGIN_CONFIG["cancel_text"], action=self.master.quit,
-            style=LOGIN_CONFIG["register_button_style"], layout=LOGIN_CONFIG["button_layout"], padding=(5,5)
+            self.form_container,
+            name=LOGIN_CONFIG["cancel_text"],
+            action=self.master.quit,
+            style=LOGIN_CONFIG["register_button_style"],
+            layout=LOGIN_CONFIG["button_layout"],
+            padding=(5, 5)
         )
         self.login_button = ButtonComponent(
-            self.form_container, name=LOGIN_CONFIG["button_text"], action=self._handle_login,
-            style=LOGIN_CONFIG["button_style"], layout=LOGIN_CONFIG["button_layout"], padding=(5,5)
+            self.form_container,
+            name=LOGIN_CONFIG["button_text"],
+            action=self._handle_login,
+            style=LOGIN_CONFIG["button_style"],
+            layout=LOGIN_CONFIG["button_layout"],
+            padding=(5, 5)
         )
         self.cancel_button.create_component()
         self.login_button.create_component()
+
         self.cancel_button.button_widget.grid(row=3, column=1, sticky="w", padx=5, pady=5)
         self.login_button.button_widget.grid(row=3, column=1, sticky="e", padx=5, pady=5)
 
@@ -84,31 +101,25 @@ class LoginPage(BasePage):
         }
 
     def _handle_login(self):
-        username = self.username_field.get_value()
+        email = self.username_field.get_value()
         password = self.password_field.get_value()
-        print(f"[DEBUG][LoginPage] Login attempt username={username}")
-
-        self.view_model.set_credentials(username, password)
-        ok, msg = self.view_model.validate_credentials()
-        print(f"[DEBUG][LoginPage] Validation: {msg}")
-        if not ok:
-            self._show_message("Login Error", msg)
-            self._clear_fields()
-            return
+        print(f"[DEBUG][LoginPage] Login attempt email={email}")
 
         try:
-            success, result = self.view_model.login()
+            success, result = self.controller.login(email, password)
             print(f"[DEBUG][LoginPage] Login result: {success}, {result}")
 
             if success:
-                role = (result.get("role") or "student").lower()
+                student = self.controller.current_student
+                role = getattr(student, "role", "student").lower()
                 target_page = "admin" if role == "admin" else "enrolment"
                 print(f"[DEBUG][LoginPage] Routing by role={role} -> {target_page}")
                 self._clear_fields()
                 if self.controller and hasattr(self.controller, "navigate"):
-                    self.controller.navigate(target_page)   # ← no role kwarg anymore
+                    self.controller.navigate(target_page)
             else:
-                self._show_message("Login Error", result.get("message"))
+                message = result.get("message") if isinstance(result, dict) else "Invalid credentials."
+                self._show_message("Login Error", message)
                 self._clear_fields()
 
         except Exception as e:
@@ -117,11 +128,20 @@ class LoginPage(BasePage):
             self._clear_fields()
 
     def _show_message(self, title, message):
-        popup = MessageBoxComponent(self.master, title=title, message=message, width=400, height=200, modal=True)
+        popup = MessageBoxComponent(
+            self.master,
+            title=title,
+            message=message,
+            width=400,
+            height=200,
+            modal=True
+        )
         popup.show()
 
     def _clear_fields(self):
         self.username_var.set("")
         self.password_var.set("")
-        try: self.username_field.input_widget.focus_set()
-        except Exception: pass
+        try:
+            self.username_field.input_widget.focus_set()
+        except Exception:
+            pass

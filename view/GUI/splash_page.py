@@ -1,7 +1,7 @@
 from tkinter import Frame
 from components.label_component import LabelComponent
 from components.progress_bar_component import ProgressBarComponent
-from views.base_page import BasePage
+from view.GUI.base_page import BasePage
 from resources.parameters.app_parameters import SPLASH_CONFIG
 
 

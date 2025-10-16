@@ -194,3 +194,25 @@ MESSAGEBOX_CONFIG = {
     "message_style": "MessageBoxText.TLabel"
 }
 
+
+DROPDOWN_CONFIG = {
+    "style": "Dropdown.TCombobox",
+    "padding": (5, 5),
+    "width": 25
+}
+
+CHECKBOX_CONFIG = {
+    "font": ("Segoe UI", 10),
+    "fg": "#333",
+    "bg": "#fff",
+    "layout": "grid",
+    "padding": (5, 5)
+}
+
+RADIO_CONFIG = {
+    "font": ("Segoe UI", 10),
+    "fg": "#333",
+    "bg": "#fff",
+    "layout": "grid",
+    "padding": (5, 5)
+}

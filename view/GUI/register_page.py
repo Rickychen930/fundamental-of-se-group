@@ -1,15 +1,13 @@
 from tkinter import Frame, Label
 from components.form_field_component import FormField
 from components.button_component import ButtonComponent
-from views.base_page import BasePage
-from view_models.register_view_model import RegisterViewModel
+from view.GUI.base_page import BasePage
 from resources.parameters.app_parameters import REGISTER_CONFIG
 
 class RegisterPage(BasePage):
     def __init__(self, master, controller=None):
         super().__init__(master)
         self.controller = controller
-        self.view_model = RegisterViewModel()
         self.cfg = REGISTER_CONFIG
 
         self._setup_ui()
@@ -85,7 +83,6 @@ class RegisterPage(BasePage):
         self.back_button.create_component()
 
     def _render_form_fields(self):
-        # Use grid layout for horizontal alignment
         self.username_field.label_widget.grid(row=0, column=0, sticky="e", padx=(0, 10), pady=5)
         self.username_field.input_widget.grid(row=0, column=1, sticky="w", pady=5)
 
@@ -100,21 +97,14 @@ class RegisterPage(BasePage):
         self.back_button.render()
 
     def handle_register(self):
-        username = self.username_field.get_value()
+        name = self.username_field.get_value()
         email = self.email_field.get_value()
         password = self.password_field.get_value()
 
-        self.view_model.set_data(username, email, password)
-        is_valid, message = self.view_model.validate()
-
-        if not is_valid:
-            print(f"⚠️ {message}")
-            return
-
-        success, result_message = self.view_model.register()
-        print(result_message)
+        success, message = self.controller.register(name, email, password)
+        print(message)
         if success:
-            print("✅ Registration successful. Navigating to login page...")
+            print("Registration successful. Navigating to login page...")
             if self.controller and hasattr(self.controller, "navigate"):
                 self.controller.navigate("login")
 
@@ -122,4 +112,4 @@ class RegisterPage(BasePage):
         if self.controller and hasattr(self.controller, "navigate"):
             self.controller.navigate("login")
         else:
-            print("🔙 Back navigation not available.")
+            print("Back navigation not available.")
