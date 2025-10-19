@@ -91,14 +91,27 @@ class SubjectController:
         except ValueError as e:
             return False, str(e)
 
-    # ---------- Persistence ----------
     def _persist_current_student(self) -> None:
         """
-        Reads db, replaces the matching student by id (or email fallback),
-        and writes back. Keeps non-student records untouched.
+        Persist the current student's latest data to the database file.
+
+        Reads all existing records, replaces the matching student entry
+        (by ID), and writes the updated list back to `students.data`.
+        Non-student records remain unchanged. If the student is missing,
+        their record is appended.
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Raises:
+            RuntimeError: If no current student is set.
+            IOError: If reading or writing to the file fails.
         """
         self._require_student()
-        student = self.current_student  # type: ignore
+        student = self.current_student
 
         raw = self.db.read_from_file()
         out = []
@@ -109,17 +122,14 @@ class SubjectController:
                 out.append(d)
                 continue
 
-            # Compare on id (preferred) then email (canonical lowercase)
             sid = str(d.get("id", "")).strip()
-            semail = str(d.get("email", "")).strip().lower()
-            if sid == student.id or semail == student.email.strip().lower():
+            if sid == student.id:
                 out.append(student.to_dict())
                 found = True
             else:
                 out.append(d)
 
         if not found:
-            # If somehow missing, append (defensive; usually shouldn't happen)
             out.append(student.to_dict())
 
         self.db.write_to_file(out)
