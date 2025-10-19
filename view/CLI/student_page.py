@@ -120,11 +120,20 @@ class StudentPage(BasePage):
         print(f"\t{'\033[93m' if ok else '\033[91m'}{msg}\033[0m")
 
     def change_password(self, student):
-        print("\t\033[96mUpdating password")
-        new_pwd = input("\tNew Password: ").strip()
-        confirm = input("\tConfirm Password: ").strip()
-        ok, msg = self.subjects.change_password(new_pwd, confirm)
-        print(f"\t{'\033[93m' if ok else '\033[91m'}{msg}\033[0m")
+        print("\t\033[96mUpdating Password\033[0m")
+
+        while True:
+            new_pwd = input("\tNew Password: ").strip()
+            confirm = input("\tConfirm Password: ").strip()
+
+            ok, msg = self.subjects.change_password(new_pwd, confirm)
+            color = "\033[93m" if ok else "\033[91m"
+            print(f"\t{color}{msg}\033[0m")
+
+            if ok:
+                break  # password updated successfully
+            else:
+                continue
 
     def show_average(self, student):
         avg = self.subjects.average()
