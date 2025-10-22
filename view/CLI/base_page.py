@@ -12,4 +12,4 @@ class BasePage:
         print(Fore.RED + message)
 
     def print_success(self, message):
-        print(Fore.GREEN + message)
+        print(Fore.YELLOW + message)
