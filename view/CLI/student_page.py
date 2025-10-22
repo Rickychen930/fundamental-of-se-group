@@ -63,33 +63,39 @@ class StudentPage(BasePage):
 
     def login(self):
         print("\t\033[92mStudent Sign In\033[0m")
-        email = input("\tEmail: ").strip()
-        password = input("\tPassword: ").strip()
 
-        success, reason = self.controller.login(email, password)
+        while True:
+            email = input("\tEmail: ").strip()
+            password = input("\tPassword: ").strip()
 
-        if success:
-            print("\t\033[93memail and password formats acceptable\033[0m")
-            self.subjects.set_current_student(self.controller.current_student)
-            self.subject_menu()
-            return
+            success, reason = self.controller.login(email, password)
 
-        if reason == "bad_format":
-            print("\t\033[91mIncorrect email or password format\033[0m")
-        elif reason == "no_such_user":
-            print("\t\033[93memail and password formats acceptable\033[0m")
-            print("\t\033[91mStudent does not exist\033[0m")
-        elif reason == "bad_password":
-            print("\t\033[93memail and password formats acceptable\033[0m")
-            print("\t\033[91mIncorrect password\033[0m")
-        else:
-            print("\t\033[91mInvalid credentials.\033[0m")
+            if success:
+                print("\t\033[93memail and password formats acceptable\033[0m")
+                self.subjects.set_current_student(self.controller.current_student)
+                self.subject_menu()
+                break  # exit loop after successful login
+
+            # handle errors and loop again
+            if reason == "bad_format":
+                print("\t\033[91mIncorrect email or password format\033[0m")
+            elif reason == "no_such_user":
+                print("\t\033[93memail and password formats acceptable\033[0m")
+                print("\t\033[91mStudent does not exist\033[0m")
+                break
+            elif reason == "bad_password":
+                print("\t\033[93memail and password formats acceptable\033[0m")
+                print("\t\033[91mStudent does not exist\033[0m")
+                break
+            else:
+                print("\t\033[91mInvalid credentials.\033[0m")
+
 
     # --- Subject submenu & flows ---
     def subject_menu(self):
         student = self.controller.current_student
         while True:
-            choice = input("\t\033[96mStudent Course Menu (c/e/r/s/x): \033[0m").strip().lower()
+            choice = input("\t\t\033[96mStudent Course Menu (c/e/r/s/x): \033[0m").strip().lower()
             if choice == "c":
                 self.change_password(student)
             elif choice == "e":
@@ -106,50 +112,49 @@ class StudentPage(BasePage):
     def _enrol_subject_flow(self, student):
         ok, msg, sub = self.subjects.enrol_auto()  # returns (ok, msg, Subject|None)
         if ok and sub:
-            print(f"\t\033[93mEnrolling in {sub.title}\033[0m")
-            print(f"\t\033[93mYou are now enrolled in {len(self.subjects.list_subjects())} out of 4 subjects")
+            print(f"\t\t\033[93mEnrolling in {sub.title}\033[0m")
+            print(f"\t\t\033[93mYou are now enrolled in {len(self.subjects.list_subjects())} out of 4 subjects")
         else:
-            print(f"\t\033[91m{msg}\033[0m")
+            print(f"\t\t\033[91m{msg}\033[0m")
 
     def _show_subjects_flow(self, student):
         items = self.subjects.list_subjects()
-        print(f"\t\033[93mShowing {len(items)} subject{'s' if len(items)!=1 else ''}\033[0m")
+        print(f"\t\t\033[93mShowing {len(items)} subject{'s' if len(items)!=1 else ''}\033[0m")
         for s in items:
-            print(f"\t[  {s.title}  -- mark = {s.mark} -- grade =  {s.grade}  ]")
+            print(f"\t\t[  {s.title}  -- mark = {s.mark} -- grade =  {s.grade}  ]")
 
     def _remove_subject_flow(self, student):
     # Do NOT print the list here (the sample doesn't show it).
-        sid = input("\tRemove Subject by ID: ").strip()
+        sid = input("\t\tRemove Subject by ID: ").strip()
 
         # Match sample wording exactly ("Droping" with one 'p' as per screenshot)
-        print(f"\t\033[93mDroping Subject-{sid}\033[0m")
+        print(f"\t\t\033[93mDroping Subject-{sid}\033[0m")
 
         ok, msg = self.subjects.remove_by_id(sid)
-        print(f"\t{'\033[93m' if ok else '\033[91m'}{msg}\033[0m")
-
+        print(f"\t\t{'\033[93m' if ok else '\033[91m'}{msg}\033[0m")
 
     def change_password(self, student):
-        print("\t\033[96mUpdating Password\033[0m")
+        print("\t\t\033[93mUpdating Password\033[0m")
 
         while True:
-            new_pwd = input("\tNew Password: ").strip()
-            confirm = input("\tConfirm Password: ").strip()
+            new_pwd = input("\t\tNew Password: ").strip()
+            confirm = input("\t\tConfirm Password: ").strip()
 
             ok, msg = self.subjects.change_password(new_pwd, confirm)
-            color = "\033[93m" if ok else "\033[91m"
-            print(f"\t{color}{msg}\033[0m")
-
-            if ok:
-                break  # password updated successfully
-            else:
+            if not ok:
+                # only show error messages
+                print(f"\t\t\033[91m{msg}\033[0m")
                 continue
+
+            # success → no message, exit loop
+            break
 
     def show_average(self, student):
         avg = self.subjects.average()
         if avg is None:
-            print("\t\033[93mNo subjects yet; average unavailable.\033[0m")
+            print("\t\t\033[93mNo subjects yet; average unavailable.\033[0m")
         else:
-            print(f"\tAverage mark = {avg:.2f}")
+            print(f"\t\tAverage mark = {avg:.2f}")
 
     # --- private helpers ---
     def _validate_formats(self, email: str, password: str) -> tuple[bool, str]:

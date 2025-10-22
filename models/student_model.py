@@ -56,7 +56,7 @@ class Student(User):
 
     def change_password(self, new_password: str) -> None:
         if not User.validate_password(new_password):
-            raise ValueError("Password must start with an uppercase, have ≥5 letters, then ≥3 digits.")
+            raise ValueError("Incorrect password format")
         self.password = new_password.strip()
 
     def average_mark(self) -> Optional[float]:
