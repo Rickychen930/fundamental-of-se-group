@@ -59,10 +59,11 @@ class Student(User):
             raise ValueError("Incorrect password format")
         self.password = new_password.strip()
 
-    def average_mark(self) -> Optional[float]:
+    def average_mark(self):
         if not self.subjects:
-            return None
-        return sum(subj.mark for subj in self.subjects) / len(self.subjects)
+            return 0.0
+        return sum(subj.mark for subj in self.subjects if subj.mark is not None) / len(self.subjects)
+
 
     def has_passed(self) -> bool:
         avg = self.average_mark()
