@@ -32,15 +32,19 @@ class Student(User):
     def enrol_subject(self, title: str) -> Subject:
         if len(self.subjects) >= MAX_SUBJECTS:
             raise ValueError("Cannot enrol in more than four (4) subjects.")
-        norm_title = title.strip()
-        if not norm_title:
-            raise ValueError("Subject title cannot be empty.")
-        if any(s.title.lower() == norm_title.lower() for s in self.subjects):
+
+        new_id = gen_subject_id()
+        norm_title = f"Subject-{new_id}"  # <-- title now matches the id
+
+        # prevent duplicate by id (or by title which is derived from id)
+        if any(s.id == new_id for s in self.subjects):
             raise ValueError("Subject already enrolled.")
+
         mark = random.randint(25, 100)
-        sub = Subject(id=gen_subject_id(), title=norm_title, mark=mark, grade=grade_from_mark(mark))
+        sub = Subject(id=new_id, title=norm_title, mark=mark, grade=grade_from_mark(mark))
         self.subjects.append(sub)
         return sub
+
 
     def remove_subject(self, subject_id: str) -> bool:
         sid = subject_id.strip()

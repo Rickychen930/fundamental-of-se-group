@@ -5,7 +5,7 @@ import re, random
 
 Role = Literal["student", "admin"]
 EMAIL_RE = re.compile(r"^[A-Za-z0-9._%+-]+@university\.com$")
-PWD_RE = re.compile(r"^[A-Z][A-Za-z]{4,}\d{3,}$")
+PWD_RE = re.compile(r"^[A-Z][A-Za-z]{5,}\d{3,}$")
 
 def gen_student_id() -> str:
     return f"{random.randint(1, 999_999):06d}"

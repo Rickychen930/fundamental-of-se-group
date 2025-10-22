@@ -1,63 +1,95 @@
 from __future__ import annotations
+
+from typing import List, Dict, Optional
 from view.CLI.base_page import BasePage
-from colorama import Fore
+from colorama import Fore  # kept for other parts of your UI; not used in partition title
+from models.student_model import Student
+from models.subject_model import grade_from_mark
+
 
 class AdminPage(BasePage):
+    GRADE_ORDER = ["HD", "D", "C", "P", "F"]  # explicit order for Grade Grouping
+
     def __init__(self, controller):
         self.controller = controller
 
+    # ---------- UI entry ----------
     def show(self):
         while True:
-            print("\t\033[96mAdmin System (c/g/p/r/s/x): ", end="")
+            print("\t\033[96mAdmin System (c/g/p/r/s/x): \033[0m", end="")
             choice = input().strip().lower()
-            if choice == 'c':
+            if choice == "c":
                 self._clear_students_flow()
-            elif choice == 'g':
-                self.show_group_by_grade()
-            elif choice == 'p':
+            elif choice == "g":
+                self.show_grade_grouping()
+            elif choice == "p":
                 self.show_partition()
-            elif choice == 'r':
+            elif choice == "r":
                 self.remove_student_flow()
-            elif choice == 's':
+            elif choice == "s":
                 self.show_all()
-            elif choice == 'x':
+            elif choice == "x":
                 break
             else:
-                self.print_fail("Invalid choice.")
+                continue
 
+    # ---------- Helpers (view-only formatting) ----------
+    @staticmethod
+    def _grade_from_avg(avg: Optional[float]) -> Optional[str]:
+        if avg is None:
+            return None
+        return grade_from_mark(int(round(avg)))
+
+    def _format_student_for_list(self, s: Student) -> str:
+        """Exact one-line item used in Grade Grouping and PASS/FAIL Partition."""
+        avg = s.average_mark()
+        if avg is None:
+            return f"{s.name} :: {s.id} --> GRADE: N/A - MARK: N/A"
+        grade = self._grade_from_avg(avg) or "N/A"
+        return f"{s.name} :: {s.id} --> GRADE: {grade} - MARK: {avg:.2f}"
+
+    # ---------- Flows ----------
     def _clear_students_flow(self):
         print("\t\033[93mClearing students database\033[0m")
         confirm = input("\t\033[91mAre you sure you want to clear the database (Y)ES/(N)O: \033[0m").strip().upper()
-        if confirm == 'Y':
+        if confirm == "Y":
             ok = self.controller.clear_all_students()
             if ok:
                 print("\t\033[93mStudents data cleared\033[0m")
 
-    def show_group_by_grade(self):
-        grouped = self.controller.group_by_grade()
+    def show_grade_grouping(self):
+        grouped: Dict[str, List[Student]] = self.controller.group_by_grade()
         if not grouped or all(len(v) == 0 for v in grouped.values()):
             print("\t\t< Nothing to Display >")
             return
+
         print("\t\033[93mGrade Grouping\033[0m")
-        for grade, students in grouped.items():
+        # Enforce stable, expected grade order
+        for grade in self.GRADE_ORDER:
+            students = grouped.get(grade, [])
             if not students:
                 continue
-            details = []
-            for s in students:
-                avg = s.average_mark()
-                details.append(f"{s.name} :: {s.id} --> GRADE: {grade} - MARK: {avg:.2f}" if avg is not None else f"{s.name} :: {s.id} --> GRADE: {grade}")
-            print(f"\t{grade}  -->  [{', '.join(details)}]")
+            # Sort by average desc for readability; change key to name/id if preferred
+            students = sorted(students, key=lambda s: (s.average_mark() or 0.0), reverse=True)
+            body = ", ".join(self._format_student_for_list(s) for s in students)
+            print(f"\t{grade} --> [{body}]")
 
     def show_partition(self):
-        partitioned = self.controller.partition_pass_fail()
-        if not partitioned or all(len(v) == 0 for v in partitioned.values()):
-            print("\t\t< Nothing to Display >")
-            return
-        print("\t\033[93mPartitioned by Pass/Fail\033[0m")
-        for status, students in partitioned.items():
-            for s in students:
-                color = Fore.GREEN if status == "PASS" else Fore.RED
-                print(color + f"\t{s.name} - {status}")
+        partitioned: Dict[str, List[Student]] = self.controller.partition_pass_fail()
+        # Stable order within each bucket (highest avg first)
+        for k in ("FAIL", "PASS"):
+            if k in partitioned:
+                partitioned[k].sort(key=lambda s: (s.average_mark() or 0.0), reverse=True)
+
+        # Plain header and exact bracketed lines to match expected output
+        print("\t\033[93mPASS/FAIL Partition")
+        for status in ("FAIL", "PASS"):  # FAIL first, then PASS (per screenshots)
+            students = partitioned.get(status, [])
+            if not students:
+                print(f"\t{status} --> []")
+            else:
+                body = ", ".join(self._format_student_for_list(s) for s in students)
+                print(f"\t{status} --> [{body}]")
 
     def remove_student_flow(self):
         sid = input("\tRemove by ID: ").strip()
@@ -70,8 +102,9 @@ class AdminPage(BasePage):
     def show_all(self):
         students = self.controller.list_students()
         if not students:
-            print("\t\t < Nothing to Display >")
+            print("\t\t< Nothing to Display >")
             return
+
         print("\t\033[93mStudent List\033[0m")
         for s in students:
             print(f"\t{s['name']}  ::  {s['id']}  -->  Email: {s['email']}")
