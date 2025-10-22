@@ -31,7 +31,6 @@ class StudentPage(BasePage):
     def register(self):
         print("\t\033[92mStudent Sign Up\033[0m")
 
-        # Loop only for format validation; if email exists, exit to menu (like the sample)
         while True:
             email = input("\tEmail: ").strip()
             password = input("\tPassword: ").strip()
@@ -41,13 +40,14 @@ class StudentPage(BasePage):
                 print(f"\t\033[91m{msg}\033[0m")
                 continue
 
-            # Check DB for duplicate email BEFORE asking for name
+            # Always show this once formats pass (matches sample)
+            print("\t\033[93memail and password formats acceptable\033[0m")
+
+            # Now check if the student already exists (use DB name in the message)
             existing = self.controller.find_by_email(email)
             if existing:
                 print(f"\t\033[91mStudent {existing.name} already exists\033[0m")
-                return  # <-- break to Student System menu (matches sample)
-
-            print("\t\033[93memail and password formats acceptable\033[0m")
+                return  # back to "Student System (l/r/x):"
             break
 
         name = input("\tName: ").strip()
