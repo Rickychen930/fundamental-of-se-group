@@ -21,8 +21,6 @@ The 5 Core Layers
 
 USER → VIEW (GUI Page)
          ↓
-      VIEWMODEL
-         ↓
      CONTROLLER
          ↓
        MODEL

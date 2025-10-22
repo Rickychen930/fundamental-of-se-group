@@ -25,7 +25,6 @@ class AdminPage(BasePage):
             else:
                 self.print_fail("Invalid choice.")
 
-    # -------- UI flows --------
     def _clear_students_flow(self):
         print("\t\033[93mClearing students database\033[0m")
         confirm = input("\t\033[91mAre you sure you want to clear the database (Y)ES/(N)O: \033[0m").strip().upper()
@@ -69,7 +68,7 @@ class AdminPage(BasePage):
             self.print_fail(f"\tStudent {sid} does not exist")
 
     def show_all(self):
-        students = self.controller.list_students()  # list of dicts
+        students = self.controller.list_students()
         if not students:
             print("\t\t < Nothing to Display >")
             return
