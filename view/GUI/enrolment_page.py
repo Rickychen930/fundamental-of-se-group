@@ -1,5 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
+from controller.subject_controller import SubjectController
+from db.database import Database
 from view.GUI.base_page import BasePage
 from components.label_component import LabelComponent
 from components.button_component import ButtonComponent
@@ -10,9 +12,11 @@ class EnrolmentPage(BasePage):
     def __init__(self, master, controller=None, app=None):
         super().__init__(master, bg="white", layout="grid")
         self.controller = controller
+        self.db = Database()
+        self.subjects = SubjectController(self.db)
         self.app = app
-        self.student = getattr(controller, "current_student", None)
-
+        self.controller.current_student = getattr(controller, "current_student", None)
+        self.subjects.set_current_student(self.controller.current_student)
         self._init_vars()
         self._build_header()
         self._build_action_buttons()
@@ -43,8 +47,8 @@ class EnrolmentPage(BasePage):
             padding=(0, 10)
         ).render()
 
-        if self.student:
-            self.info_var.set(f"Logged in as: {self.student.name} ({self.student.email})")
+        if self.controller.current_student:
+            self.info_var.set(f"Logged in as: {self.controller.current_student.name} ({self.controller.current_student.email})")
         else:
             self.info_var.set("Error: No student loaded.")
 
@@ -93,18 +97,18 @@ class EnrolmentPage(BasePage):
         btn.button_widget.grid(row=0, column=2, sticky="e")
 
     def _refresh_status(self):
-        if not self.student:
+        if not self.controller.current_student:
             self.avg_var.set("Average: 0.00")
             self.status_var.set("Status: -")
             return
 
-        avg = self.student.average_mark()
-        status = "PASS" if self.student.has_passed() else "FAIL"
+        avg = self.controller.current_student.average_mark()
+        status = "PASS" if self.controller.current_student.has_passed() else "FAIL"
         self.avg_var.set(f"Average: {avg:.2f}")
         self.status_var.set(f"Status: {status}")
 
     def _popup_subject_table(self):
-        if not self.student:
+        if not self.controller.current_student:
             self._show_message("Error", "No student data available.")
             return
 
@@ -129,41 +133,25 @@ class EnrolmentPage(BasePage):
         tree.configure(yscrollcommand=yscroll.set)
         yscroll.grid(row=0, column=1, sticky="ns")
 
-        for subj in self.student.subjects:
+        for subj in self.controller.current_student.subjects:
             tree.insert("", "end", values=(subj.id, subj.title, subj.mark, subj.grade))
 
         self._refresh_status()
 
     def _popup_enrol(self):
-        popup = tk.Toplevel(self)
-        popup.title("Add Enrollment")
-        popup.geometry("320x160")
-        popup.transient(self)
-        popup.grab_set()
+        if not self.controller.current_student:
+            self._show_message("Error", "No student loaded.")
+            return
 
-        form_frame = tk.Frame(popup, bg="white")
-        form_frame.pack(padx=20, pady=20, fill="both", expand=True)
+        ok, msg, sub = self.subjects.enrol_auto()
 
-        LabelComponent(form_frame, text="Subject Title:", bg="white").render()
-        input_field = TextInputComponent(form_frame)
-        input_field.render()
-        input_field.get_widget().pack(fill="x", pady=6)
+        if ok:
+            self._refresh_status()
+            self._show_message("Success", msg)
+        else:
+            self._show_message("Error", msg)
 
-        def submit():
-            title = input_field.get_text()
-            if not title:
-                self._show_message("Error", "Subject title cannot be empty.")
-            else:
-                success, msg = self.controller.enrol_subject(title)
-                if success:
-                    self._refresh_status()
-                    popup.destroy()
-                else:
-                    self._show_message("Enrol Error", msg)
 
-        btn = ButtonComponent(form_frame, name="Submit", action=submit)
-        btn.create_component()
-        btn.button_widget.pack(pady=10)
 
     def _popup_password(self):
         popup = tk.Toplevel(self)
