@@ -152,7 +152,6 @@ class EnrolmentPage(BasePage):
             self._show_message("Error", msg)
 
 
-
     def _popup_password(self):
         popup = tk.Toplevel(self)
         popup.title("Change Password")
@@ -174,29 +173,29 @@ class EnrolmentPage(BasePage):
         input_pw2.get_widget().pack(fill="x", pady=6)
 
         def submit():
-            pw1 = input_pw1.get_text()
-            pw2 = input_pw2.get_text()
+            pw1 = (input_pw1.get_text() or "").strip()
+            pw2 = (input_pw2.get_text() or "").strip()
 
             if not pw1 or not pw2:
                 self._show_message("Error", "Both password fields must be filled.")
-                popup.destroy()
                 return
 
+            # Controller validate match/format;
             if pw1 != pw2:
                 self._show_message("Error", "Passwords do not match.")
-                popup.destroy()
                 return
 
-            success, msg = self.controller.change_password(pw1)
+            success, msg = self.controller.change_password(pw1, pw2)
             if success:
                 self._show_message("Success", msg)
+                popup.destroy()
             else:
                 self._show_message("Password Error", msg)
-            popup.destroy()
 
         btn = ButtonComponent(form_frame, name="Update", action=submit)
         btn.create_component()
         btn.button_widget.pack(pady=10)
+
 
     def _on_logout(self):
         target_page = "login"

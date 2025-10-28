@@ -4,8 +4,12 @@ from controller.admin_controller import AdminController
 from controller.student_controller import StudentController
 from db.database import Database
 
+
 class App:
+    """Main coordinator for the CLI University System."""
+
     def __init__(self):
+        """Set up database, controllers, and views."""
         self.db = Database()
         self.admin_controller = AdminController(self.db)
         self.student_controller = StudentController(self.db)
@@ -14,37 +18,33 @@ class App:
         self.student_page = StudentPage(self.student_controller)
 
     def run(self):
+        """Display main menu and route to Admin or Student systems."""
         self._clear_screen()
         while True:
-            # University System prompt
-            print("\033[96mUniversity System: (A)dmin, (S)tudent, or X : ", end="")
+            print("\033[96mUniversity System: (A)dmin, (S)tudent, or X : \033[0m", end="")
             choice = input().strip().upper()
 
-            # Admin system entry point
-            if choice == 'A':
+            if choice == 'A':        # Admin system
                 self.admin_page.show()
-
-            # Student system entry point
-            elif choice == 'S':
+            elif choice == 'S':      # Student system
                 self.student_page.show()
-
-            # Exit menu
-            elif choice == 'X':
+            elif choice == 'X':      # Exit
                 print("\033[93mThank You\033[0m")
                 break
-            
-            # Loop back to menu if incorrect selection
-            else:
+            else:                    # Invalid input
                 continue
-        
 
+    # ---------- Utilities ----------
+    
     def _clear_screen(self):
-        # Works on most terminals
+        """Clear the terminal screen."""
         import os
         os.system('cls' if os.name == 'nt' else 'clear')
 
     def _print_fail(self, message):
+        """Show an error message."""
         print(f"[ERROR] {message}")
 
     def _pause(self):
+        """Wait for user input before continuing."""
         input("Press Enter to continue...")
