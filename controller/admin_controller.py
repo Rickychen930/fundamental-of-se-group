@@ -1,13 +1,13 @@
 from __future__ import annotations
+
 from typing import List, Dict, Tuple
 from db.database import Database
 from models.admin_model import Admin
 from models.student_model import Student, students_from_dicts, students_to_dicts
 
 class AdminController:
-    """
-    Orchestrates Admin flows.
-    """
+    """  Admin flows  """
+
     def __init__(self, db: Database):
         self.db = db
         self.admin = Admin.create("System Admin", "admin@university.com", "AdminPass123")

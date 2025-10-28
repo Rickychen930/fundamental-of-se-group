@@ -9,27 +9,29 @@ from models.subject_model import MAX_SUBJECTS
 
 
 class StudentController:
-    """Orchestrates student flows. No prints; exposes methods for the view."""
+    """  Student flow  """
 
     def __init__(self, db: Database):
         self.db = db
         self.current_student: Optional[Student] = None
 
-    # ---------- internal helpers ----------
+    # ---------- internals ----------
 
     def _load_students(self) -> List[Student]:
+        """Read all students from the DB file."""
         raw = self.db.read_from_file()
         return students_from_dicts(raw)
 
     def _write_students(self, students: List[Student]) -> None:
+        """Write students back to the DB file (keep non-student records)."""
         raw = self.db.read_from_file()
         others = [d for d in raw if d.get("role") != "student"]
         self.db.write_to_file(others + students_to_dicts(students))
 
-    # ---------- utilities for the View ----------
+    # ---------- helpers used by the view ----------
 
     def find_by_email(self, email: str) -> Optional[Student]:
-        """Return the Student with this email, or None."""
+        """Find a student by email (case-insensitive)."""
         e = email.strip().lower()
         for s in self._load_students():
             if s.email.strip().lower() == e:
@@ -37,12 +39,13 @@ class StudentController:
         return None
 
     def email_exists(self, email: str) -> bool:
+        """Check if an email is already registered."""
         return self.find_by_email(email) is not None
 
     # ---------- login and register ----------
 
     def login(self, email: str, password: str) -> tuple[bool, Optional[str]]:
-        # Validate formats via User validators (keeps rules out of controller)
+        """Validate formats, then log in and set current_student."""
         if not (User.validate_email(email) and User.validate_password(password)):
             return False, "bad_format"
 
@@ -56,23 +59,22 @@ class StudentController:
         return False, "no_such_user"
 
     def register(self, name: str, email: str, password: str) -> tuple[bool, str]:
+        """Create a new student record if the email isn’t taken."""
         students = self._load_students()
 
         email_norm = email.strip().lower()
         if any(s.email.strip().lower() == email_norm for s in students):
-            # Message shape matches earlier transcripts; the view should normally
-            # call email_exists() before asking for the name.
             return False, f"Student {name.strip()} already exists"
 
-        # Delegate validation & creation to the model
         new_student = Student.create(name, email, password)
         students.append(new_student)
         self._write_students(students)
         return True, f"Enrolling Student {new_student.name}"
 
-    # ---------- persistence of current student ----------
+    # ---------- saving the current student ----------
 
     def save_current(self) -> None:
+        """Write current_student back into the DB (if logged in)."""
         if not self.current_student:
             return
         students = self._load_students()
@@ -82,10 +84,10 @@ class StudentController:
                 break
         self._write_students(students)
 
-    # ---------- subject operations for current student (direct) ----------
+    # ---------- direct subject ops (explicit title / id) ----------
 
     def enrol_subject(self, title: str) -> tuple[bool, str]:
-        """Enrol with an explicit title."""
+        """Enrol using a provided title."""
         if not self.current_student:
             return False, "Not logged in"
         try:
@@ -96,7 +98,7 @@ class StudentController:
             return False, str(e)
 
     def remove_subject(self, subject_id: str) -> tuple[bool, str]:
-        """Remove by subject id (direct)."""
+        """Remove a subject by id."""
         if not self.current_student:
             return False, "Not logged in"
         removed = self.current_student.remove_subject(subject_id.strip())
@@ -105,18 +107,18 @@ class StudentController:
             return True, f"Removed subject {subject_id}"
         return False, "Subject not found."
 
-    # ---------- thin helpers used by StudentPage ----------
+    # ---------- methods the StudentPage calls ----------
 
     def list_subjects(self):
-        """Return the current student's subjects (or empty list)."""
+        """Return subjects for the logged-in student (or empty list)."""
         if not self.current_student:
             return []
         return self.current_student.subjects
 
     def enrol_auto(self):
         """
-        Auto-enrol in a randomly named subject (Subject-###).
-        Returns: (ok, msg, subject|None)
+        Enrol in a random subject like 'Subject-123'.
+        Returns (ok, message, subject|None).
         """
         if not self.current_student:
             return False, "Not logged in", None
@@ -134,7 +136,7 @@ class StudentController:
             return False, str(e), None
 
     def remove_by_id(self, subject_id: str):
-        """Remove a subject by id. Returns (ok, msg)."""
+        """Remove a subject by id. Returns (ok, message)."""
         if not self.current_student:
             return False, "Not logged in"
         ok = self.current_student.remove_subject(subject_id.strip())
@@ -144,7 +146,7 @@ class StudentController:
         return False, "Subject not found."
 
     def change_password(self, new_password: str, confirm: str):
-        """Change password with confirmation. Returns (ok, msg)."""
+        """Change password with confirmation. Returns (ok, message)."""
         if not self.current_student:
             return False, "Not logged in"
         if new_password.strip() != confirm.strip():
@@ -157,7 +159,7 @@ class StudentController:
             return False, str(e)
 
     def average(self):
-        """Average mark for the current student, or None."""
+        """Return average mark, or None if no subjects / not logged in."""
         if not self.current_student:
             return None
         return self.current_student.average_mark()
