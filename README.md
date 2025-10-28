@@ -1,6 +1,3 @@
-Student: alice@university.com / Password123
-Admin: admin@university.com / AdminPass123
-
 UTS Fundamentals of Software Development — MVC + MVVM Architecture
 
 This project implements a University Application System using a hybrid MVC + MVVM architecture in Python with Tkinter GUI and a local file database (students.data).
@@ -16,28 +13,57 @@ This project isn’t a pure MVC (Model–View–Controller); it’s a hybrid MVC
 - The Models define your data and enforce system constraints.
 
 --------------------------------------------------------------------------------
-The 5 Core Layers
+The Core Layers
 --------------------------------------------------------------------------------
 
-USER → VIEW (GUI Page)
-         ↓
-     CONTROLLER
-         ↓
-       MODEL
-         ↓
-     DATABASE (students.data)
++------------------+
+|      View        | ← handles user input/output
+| (CLI / GUI pages)|
++--------▲---------+
+         |
+         | calls
+         ▼
++------------------+
+|    Controller    | ← business logic (what to do)
+| (Admin / Student)|
++--------▲---------+
+         |
+         | loads/saves data
+         ▼
++------------------+
+|     Database     | ← raw file I/O (pickled data)
++--------▲---------+
+         |
+         | stores/loads Python objects
+         ▼
++------------------+
+|      Models      | ← data definitions & rules
+| (Student, Admin) |
++------------------+
 
-Each layer has a clear responsibility and direction of communication.
+Example work flow 
+
+[View] StudentPage._enrol_subject_flow()
+        ↓
+[Controller] StudentController.enrol_auto()
+        ↓
+[Model] Student.enrol_subject(title)
+        ↓
+[Controller] save_current() → writes updated student
+        ↓
+[Database] write_to_file()
+        ↓
+[Disk] db/students.data (pickled)
 
 --------------------------------------------------------------------------------
-1️⃣ View = GUI Pages (Tkinter)
+View = GUI Pages (Tkinter)
 --------------------------------------------------------------------------------
 
 Files:
-views/login_page.py
-views/register_page.py
-views/enrolment_page.py
-views/admin_page.py
+views/GUI/login_page.py
+views/GUI/register_page.py
+views/GUI/enrolment_page.py
+views/GUI/admin_page.py
 
 Purpose:
 To display information and capture user input — buttons, text fields, and labels.
@@ -55,20 +81,18 @@ When a user clicks “Login”, the View calls:
 self.view_model.login()
 
 --------------------------------------------------------------------------------
-2️⃣ Controllers = Business Logic + Data Coordination
+Controllers = Business Logic + Data Coordination
 --------------------------------------------------------------------------------
 
 Files:
-controllers/student_controller.py
-controllers/admin_controller.py
-controllers/university_controller.py
-controllers/subject_controller.py
+controller/student_controller.py
+controller/admin_controller.py
+controller/subject_controller.py
 
 Purpose:
 Controllers are the brains of the system. They connect the ViewModels to the Models and the Database.
 
 Responsibilities:
-- Handle CRUD operations (Create, Read, Update, Delete)
 - Load and save data through the Database
 - Apply business rules (max 4 subjects, pass/fail logic, unique IDs)
 - Never directly manipulate the GUI
@@ -88,44 +112,13 @@ def login(self, email, password):
 Controllers interact only with Models and the Database, making them reusable for both CLI and GUI applications.
 
 Example Controllers:
-- UniversityController – Entry point for the application, switches between student/admin modules.
 - StudentController – Handles login, registration, enrolment, subject removal, and password changes.
 - AdminController – Lists, groups, partitions, removes, or clears student data.
 - SubjectController – Manages subject-specific operations such as adding or removing subjects.
 
---------------------------------------------------------------------------------
-3️⃣ ViewModel = Page Logic Layer
---------------------------------------------------------------------------------
-
-Files:
-view_models/login_view_model.py
-view_models/register_view_model.py
-
-Purpose:
-Handles all page-specific logic such as validating user input, interpreting controller responses, and providing information back to the GUI.
-
-Responsibilities:
-- Validate user credentials and formats.
-- Call the appropriate controller methods.
-- Return success or error messages to the View.
-- Contain no GUI code (pure logic).
-
-Example:
-
-def login(self):
-    ok, msg = self.validate_credentials()
-    if not ok:
-        return False, msg
-    success, result = self.student_controller.login(self.username, self.password)
-    if success:
-        return True, {"message": "Welcome!", "role": "student"}
-    return False, {"message": "Invalid credentials", "role": None}
-
-The ViewModel acts as a bridge between the View (Tkinter GUI) and the Controller (application logic).  
-It ensures the GUI layer never interacts directly with data logic.
 
 --------------------------------------------------------------------------------
-4️⃣ Models = Core Data and Business Rules
+Models = Core Data and Business Rules
 --------------------------------------------------------------------------------
 
 Files:
@@ -159,7 +152,7 @@ Model Relationships:
 - Admin → Student (dependency: admin manages students)
 
 --------------------------------------------------------------------------------
-5️⃣ Database = Data Persistence Layer
+Database = Data Persistence Layer
 --------------------------------------------------------------------------------
 
 File:

@@ -30,9 +30,7 @@ class AdminController:
 
     def _write_students(self, students: list[Student]) -> None:
         """Write updated student data back to the file (keep non-student records)."""
-        raw_all = self.db.read_from_file()
-        others = [d for d in raw_all if d.get("role") != "student"]
-        self.db.write_to_file(others + students_to_dicts(students))
+        self.db.write_to_file(students_to_dicts(students))
 
     # ---------- main admin actions ----------
 
