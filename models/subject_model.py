@@ -2,6 +2,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 import random
 
+GRADE_ORDER = ["HD", "D", "C", "P", "F"]  # explicit order for Grade Grouping
+
 def gen_subject_id() -> str:
     return f"{random.randint(1, 999):03d}"
 

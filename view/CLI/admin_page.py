@@ -4,11 +4,10 @@ from typing import List, Dict, Optional
 from view.CLI.base_page import BasePage
 from colorama import Fore  # kept for other parts of your UI; not used in partition title
 from models.student_model import Student
-from models.subject_model import grade_from_mark
+from models.subject_model import grade_from_mark, GRADE_ORDER
 
 
 class AdminPage(BasePage):
-    GRADE_ORDER = ["HD", "D", "C", "P", "F"]  # explicit order for Grade Grouping
 
     def __init__(self, controller):
         self.controller = controller
@@ -33,7 +32,7 @@ class AdminPage(BasePage):
             else:
                 continue
 
-    # ---------- Helpers (view-only formatting) ----------
+    # ---------- Helper methods (formatting and grade conversion) ----------
     @staticmethod
     def _grade_from_avg(avg: Optional[float]) -> Optional[str]:
         if avg is None:
@@ -48,7 +47,7 @@ class AdminPage(BasePage):
         grade = self._grade_from_avg(avg) or "N/A"
         return f"{s.name} :: {s.id} --> GRADE: {grade} - MARK: {avg:.2f}"
 
-    # ---------- Flows ----------
+    # ---------- Menu option flows ----------
     def _clear_students_flow(self):
         print("\t\033[93mClearing students database\033[0m")
         confirm = input("\t\033[91mAre you sure you want to clear the database (Y)ES/(N)O: \033[0m").strip().upper()
@@ -65,7 +64,7 @@ class AdminPage(BasePage):
 
         print("\t\033[93mGrade Grouping\033[0m")
         # Enforce stable, expected grade order
-        for grade in self.GRADE_ORDER:
+        for grade in GRADE_ORDER:
             students = grouped.get(grade, [])
             if not students:
                 continue
