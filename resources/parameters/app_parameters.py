@@ -103,6 +103,43 @@ PAGE_CONFIG = {
     "title_anchor": "center"
 }
 
+ENROLLMENT_CONFIG = {
+    "background_color": get_color("surface"),
+    "title_text": "DASHBOARD",
+    "title_font": ("Segoe UI", 20, "bold"),
+    "title_padding": 24,
+    "subtitle_text": "DASHBOARD",
+    "subtitle_font": ("Segoe UI", 12),
+    "subtitle_fg": get_color("text_secondary"),
+    "form_padding_y": 12,
+    "form_padding_x": 24,
+    "field_label_style": "FieldLabel.TLabel",
+    "field_label_font": ("Segoe UI", 12),
+    "username_label": get_text("username_label"),
+    "password_label": get_text("password_label"),
+    "input_width": 40,
+    "input_font": ("Segoe UI", 11),
+    "input_fg": get_color("text_primary"),
+    "input_bg": get_color("surface"),
+    "input_padding": (5, 10),
+    "button_text": get_text("login_button"),
+    "button_style": "Primary.TButton",
+    "button_font": ("Segoe UI", 11, "bold"),
+    "button_fg": get_color("text_on_accent"),
+    "button_bg": get_color("accent"),
+    "button_padding": (30, 10),
+    "button_layout": "pack",
+    "button_frame_padding": 20,
+    "register_button_text": get_text("register_button"),
+    "register_button_style": "Secondary.TButton",
+    "register_button_layout": "pack",
+    "register_button_padding": (20, 10),
+    "title_fg": get_color("title_fg"),
+    "title_bg": get_color("title_bg"),
+    "cancel_text":get_text("cancel_button")
+
+}
+
 LOGIN_CONFIG = {
     "background_color": get_color("surface"),
     "title_text": get_text("login_title"),

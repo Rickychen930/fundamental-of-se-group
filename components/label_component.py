@@ -28,6 +28,7 @@ class LabelComponent(Component):
         self._text = text
         self._textvariable = textvariable
         self._label = None
+        self.label_widget = None  #Public reference for external layout
         self.create_component()
 
     def create_component(self):
@@ -48,6 +49,7 @@ class LabelComponent(Component):
 
         config.update(self.get_extra())
         self._label = self.get_ttk().Label(self.get_root(), **config)
+        self.label_widget = self._label  #Expose for external use
 
     def render(self):
         layout = self.get_layout()
@@ -59,6 +61,8 @@ class LabelComponent(Component):
             self._label.grid(padx=padx, pady=pady)
         elif layout == "place":
             self._label.place(relx=0.5, rely=0.5, anchor="center")
+
+        return self._label
 
     def get_widget(self):
         return self._label
