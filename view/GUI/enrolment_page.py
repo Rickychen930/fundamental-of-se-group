@@ -103,9 +103,14 @@ class EnrolmentPage(BasePage):
             return
 
         avg = self.controller.current_student.average_mark()
+        if avg is None:
+            avg = 0.0  
+
         status = "PASS" if self.controller.current_student.has_passed() else "FAIL"
+
         self.avg_var.set(f"Average: {avg:.2f}")
         self.status_var.set(f"Status: {status}")
+
 
     def _popup_subject_table(self):
         if not self.controller.current_student:

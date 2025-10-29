@@ -5,9 +5,10 @@ from view.CLI.base_page import BasePage
 class StudentPage(BasePage):
     """CLI interface for student registration, login, and subject management."""
 
-    def __init__(self, controller):
-        """Use the injected StudentController only."""
-        self.controller = controller
+    def __init__(self, student_controller, subject_controller):
+        """Inject both controllers: StudentController (auth/profile) and SubjectController (subjects)."""
+        self.student = student_controller
+        self.subjects = subject_controller
 
     def show(self):
         """Main student menu loop."""
@@ -41,7 +42,7 @@ class StudentPage(BasePage):
 
             print("\t\033[93memail and password formats acceptable\033[0m")
 
-            existing = self.controller.find_by_email(email)
+            existing = self.student.find_by_email(email)
             if existing:
                 print(f"\t\033[91mStudent {existing.name} already exists\033[0m")
                 return
@@ -52,7 +53,7 @@ class StudentPage(BasePage):
             print("\t\033[91mName cannot be empty.\033[0m")
             return
 
-        ok, msg = self.controller.register(name, email, password)
+        ok, msg = self.student.register(name, email, password)
         color = "\033[93m" if ok else "\033[91m"
         print(f"\t{color}{msg}\033[0m")
 
@@ -64,11 +65,12 @@ class StudentPage(BasePage):
             email = input("\tEmail: ").strip()
             password = input("\tPassword: ").strip()
 
-            success, reason = self.controller.login(email, password)
+            success, reason = self.student.login(email, password)
 
             if success:
                 print("\t\033[93memail and password formats acceptable\033[0m")
-                # current_student is set inside controller.login(...)
+                # Make SubjectController aware of the logged-in student
+                self.subjects.set_current_student(self.student.current_student)
                 self.subject_menu()
                 break
 
@@ -103,16 +105,17 @@ class StudentPage(BasePage):
 
     def _enrol_subject_flow(self):
         """Enroll the student in a subject (auto-selected)."""
-        ok, msg, sub = self.controller.enrol_auto()
+        ok, msg, sub = self.subjects.enrol_auto()
         if ok and sub:
             print(f"\t\t\033[93mEnrolling in {sub.title}\033[0m")
-            print(f"\t\t\033[93mYou are now enrolled in {len(self.controller.list_subjects())} out of 4 subjects")
+            current = len(self.subjects.list_subjects())
+            print(f"\t\t\033[93mYou are now enrolled in {current} out of 4 subjects\033[0m")
         else:
             print(f"\t\t\033[91m{msg}\033[0m")
 
     def _show_subjects_flow(self):
         """Display all subjects the student is enrolled in."""
-        items = self.controller.list_subjects()
+        items = self.subjects.list_subjects()
         print(f"\t\t\033[93mShowing {len(items)} subject{'s' if len(items) != 1 else ''}\033[0m")
         for s in items:
             print(f"\t\t[  {s.title}  -- mark = {s.mark} -- grade =  {s.grade}  ]")
@@ -120,8 +123,8 @@ class StudentPage(BasePage):
     def _remove_subject_flow(self):
         """Remove a subject by ID (matches expected output format)."""
         sid = input("\t\tRemove Subject by ID: ").strip()
-        print(f"\t\t\033[93mDroping Subject-{sid}\033[0m")  # Note: "Droping" kept as per sample
-        ok, msg = self.controller.remove_by_id(sid)
+        print(f"\t\t\033[93mDroping Subject-{sid}\033[0m")  # kept as per sample output
+        ok, msg = self.subjects.remove_by_id(sid)
         print(f"\t\t{'\033[93m' if ok else '\033[91m'}{msg}\033[0m")
 
     def change_password(self):
@@ -131,19 +134,11 @@ class StudentPage(BasePage):
         while True:
             new_pwd = input("\t\tNew Password: ").strip()
             confirm = input("\t\tConfirm Password: ").strip()
-            ok, msg = self.controller.change_password(new_pwd, confirm)
+            ok, msg = self.student.change_password(new_pwd, confirm)
             if not ok:
                 print(f"\t\t\033[91m{msg}\033[0m")
                 continue
             break
-
-    def show_average(self):
-        """Display average mark across enrolled subjects."""
-        avg = self.controller.average()
-        if avg is None:
-            print("\t\t\033[93mNo subjects yet; average unavailable.\033[0m")
-        else:
-            print(f"\t\tAverage mark = {avg:.2f}")
 
     # ---------- Helpers ----------
 

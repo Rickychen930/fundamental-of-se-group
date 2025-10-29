@@ -1,6 +1,9 @@
-from __future__ import annotations
+# -------------------------------------------------------------------
+# Admin Controller 
+# -------------------------------------------------------------------
 
-from typing import List, Dict, Tuple
+from __future__ import annotations
+from typing import List
 from db.database import Database
 from models.admin_model import Admin
 from models.student_model import Student, students_from_dicts, students_to_dicts
@@ -10,18 +13,8 @@ class AdminController:
     """Handles admin features like viewing, grouping, and removing students."""
 
     def __init__(self, db: Database):
-        """Set up the admin account and connect to the database."""
+        """Connect to the database (no admin instance needed)."""
         self.db = db
-        self.admin = Admin.create("System Admin", "admin@university.com", "AdminPass123")
-
-    # ---------- login ----------
-
-    def login(self, email: str, password: str) -> tuple[bool, str | None]:
-        """Check admin email and password."""
-        ok = (email.strip().lower() == "admin@university.com") and self.admin.verify_password(password)
-        return (ok, "admin") if ok else (False, None)
-
-    # ---------- private file helpers ----------
 
     def _load_students(self) -> list[Student]:
         """Read all student data from the file."""
@@ -29,30 +22,30 @@ class AdminController:
         return students_from_dicts(raw)
 
     def _write_students(self, students: list[Student]) -> None:
-        """Write updated student data back to the file (keep non-student records)."""
+        """Write updated student data back to the file."""
         self.db.write_to_file(students_to_dicts(students))
 
-    # ---------- main admin actions ----------
+    # ---------- main admin logic ----------
 
     def list_students(self) -> list[dict]:
         """Return a list of all students with their details."""
         students = self._load_students()
-        return self.admin.list_students(students)
+        return Admin.list_students(students)
 
     def group_by_grade(self) -> dict[str, list[Student]]:
         """Group students by their grade (HD, D, C, P, F)."""
         students = self._load_students()
-        return self.admin.group_by_grade(students)
+        return Admin.group_by_grade(students)
 
     def partition_pass_fail(self) -> dict[str, list[Student]]:
         """Split students into pass and fail groups."""
         students = self._load_students()
-        return self.admin.partition_pass_fail(students)
+        return Admin.partition_pass_fail(students)
 
     def remove_student_by_id(self, student_id: str) -> bool:
         """Remove a student by their ID and save the changes."""
         students = self._load_students()
-        updated, removed = self.admin.remove_student_by_id(students, student_id)
+        updated, removed = Admin.remove_student_by_id(students, student_id)
         if removed:
             self._write_students(updated)
         return removed

@@ -1,21 +1,21 @@
+# -------------------------------------------------------------------
+# Student Controller 
+# -------------------------------------------------------------------
+
 from __future__ import annotations
 
-import random
 from typing import Optional, List
 from db.database import Database
 from models.student_model import Student, students_from_dicts, students_to_dicts
 from models.user_model import User
-from models.subject_model import MAX_SUBJECTS
 
 
 class StudentController:
-    """  Student flow  """
+    """Owns student identity/session and profile updates (no subject ops here)."""
 
     def __init__(self, db: Database):
         self.db = db
         self.current_student: Optional[Student] = None
-
-    # ---------- internals ----------
 
     def _load_students(self) -> List[Student]:
         """Read all students from the DB file."""
@@ -23,12 +23,24 @@ class StudentController:
         return students_from_dicts(raw)
 
     def _write_students(self, students: List[Student]) -> None:
-        """Write students back to the DB file (keep non-student records)."""
-        raw = self.db.read_from_file()
-        others = [d for d in raw if d.get("role") != "student"]
-        self.db.write_to_file(others + students_to_dicts(students))
+        """Overwrite the DB with exactly these students."""
+        self.db.write_to_file(students_to_dicts(students))
 
-    # ---------- helpers used by the view ----------
+
+    def _save_current_profile(self) -> None:
+        """
+        Persist non-subject changes to the current student (e.g., password).
+        Subject mutations should be persisted by SubjectController.
+        """
+        if not self.current_student:
+            return
+
+        students = self._load_students()
+        students = [s for s in students if s.id != self.current_student.id]
+        students.append(self.current_student)
+
+        self._write_students(students)
+
 
     def find_by_email(self, email: str) -> Optional[Student]:
         """Find a student by email (case-insensitive)."""
@@ -41,8 +53,8 @@ class StudentController:
     def email_exists(self, email: str) -> bool:
         """Check if an email is already registered."""
         return self.find_by_email(email) is not None
-
-    # ---------- login and register ----------
+    
+    # ---------- main student logic ----------
 
     def login(self, email: str, password: str) -> tuple[bool, Optional[str]]:
         """Validate formats, then log in and set current_student."""
@@ -71,81 +83,7 @@ class StudentController:
         self._write_students(students)
         return True, f"Enrolling Student {new_student.name}"
 
-    # ---------- saving the current student ----------
-
-    def save_current(self) -> None:
-        """Write current_student back into the DB (if logged in)."""
-        if not self.current_student:
-            return
-        students = self._load_students()
-        for i, s in enumerate(students):
-            if s.email.strip().lower() == self.current_student.email.strip().lower():
-                students[i] = self.current_student
-                break
-        self._write_students(students)
-
-    # ---------- direct subject ops (explicit title / id) ----------
-
-    def enrol_subject(self, title: str) -> tuple[bool, str]:
-        """Enrol using a provided title."""
-        if not self.current_student:
-            return False, "Not logged in"
-        try:
-            subject = self.current_student.enrol_subject(title)
-            self.save_current()
-            return True, f"Enrolled in {subject.title} (ID {subject.id})"
-        except Exception as e:
-            return False, str(e)
-
-    def remove_subject(self, subject_id: str) -> tuple[bool, str]:
-        """Remove a subject by id."""
-        if not self.current_student:
-            return False, "Not logged in"
-        removed = self.current_student.remove_subject(subject_id.strip())
-        if removed:
-            self.save_current()
-            return True, f"Removed subject {subject_id}"
-        return False, "Subject not found."
-
-    # ---------- methods the StudentPage calls ----------
-
-    def list_subjects(self):
-        """Return subjects for the logged-in student (or empty list)."""
-        if not self.current_student:
-            return []
-        return self.current_student.subjects
-
-    def enrol_auto(self):
-        """
-        Enrol in a random subject like 'Subject-123'.
-        Returns (ok, message, subject|None).
-        """
-        if not self.current_student:
-            return False, "Not logged in", None
-
-        student = self.current_student
-        if len(student.subjects) >= MAX_SUBJECTS:
-            return False, "students are allowed to enrol in 4 subjects only", None
-
-        title = f"Subject-{random.randint(1, 999)}"
-        try:
-            sub = student.enrol_subject(title)
-            self.save_current()
-            return True, f"You are now enrolled in {len(student.subjects)} out of {MAX_SUBJECTS} subjects", sub
-        except Exception as e:
-            return False, str(e), None
-
-    def remove_by_id(self, subject_id: str):
-        """Remove a subject by id. Returns (ok, message)."""
-        if not self.current_student:
-            return False, "Not logged in"
-        ok = self.current_student.remove_subject(subject_id.strip())
-        if ok:
-            self.save_current()
-            return True, f"You are now enrolled in {len(self.current_student.subjects)} out of {MAX_SUBJECTS} subjects"
-        return False, "Subject not found."
-
-    def change_password(self, new_password: str, confirm: str):
+    def change_password(self, new_password: str, confirm: str) -> tuple[bool, str]:
         """Change password with confirmation. Returns (ok, message)."""
         if not self.current_student:
             return False, "Not logged in"
@@ -153,13 +91,7 @@ class StudentController:
             return False, "Password does not match - try again"
         try:
             self.current_student.change_password(new_password.strip())
-            self.save_current()
+            self._save_current_profile()
             return True, "Password updated"
         except Exception as e:
             return False, str(e)
-
-    def average(self):
-        """Return average mark, or None if no subjects / not logged in."""
-        if not self.current_student:
-            return None
-        return self.current_student.average_mark()

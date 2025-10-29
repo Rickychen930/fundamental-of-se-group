@@ -2,6 +2,7 @@ from view.CLI.admin_page import AdminPage
 from view.CLI.student_page import StudentPage
 from controller.admin_controller import AdminController
 from controller.student_controller import StudentController
+from controller.subject_controller import SubjectController 
 from db.database import Database
 
 
@@ -11,11 +12,14 @@ class App:
     def __init__(self):
         """Set up database, controllers, and views."""
         self.db = Database()
+        # Controllers
         self.admin_controller = AdminController(self.db)
         self.student_controller = StudentController(self.db)
+        self.subject_controller = SubjectController(self.db) 
 
+        # Pages
         self.admin_page = AdminPage(self.admin_controller)
-        self.student_page = StudentPage(self.student_controller)
+        self.student_page = StudentPage(self.student_controller, self.subject_controller)
 
     def run(self):
         """Display main menu and route to Admin or Student systems."""
@@ -35,7 +39,6 @@ class App:
                 continue
 
     # ---------- Utilities ----------
-    
     def _clear_screen(self):
         """Clear the terminal screen."""
         import os
