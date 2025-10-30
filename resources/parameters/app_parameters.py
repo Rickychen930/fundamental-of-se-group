@@ -90,7 +90,7 @@ SPLASH_CONFIG = {
     "progress_interval": 20,
     "progress_autostart": True,
     "progress_layout": "pack",
-    "progress_padding": (0,)
+    "progress_padding": (0,0)
 }
 
 PAGE_CONFIG = {

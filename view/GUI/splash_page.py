@@ -18,18 +18,17 @@ class SplashScreenPage(BasePage):
             master (tk.Tk or tk.Frame): Parent container.
             on_continue (callable): Function to call after splash delay.
         """
-        super().__init__(master)
+        super().__init__(master, bg=SPLASH_CONFIG["background_color"], layout="pack")
         self._on_continue = on_continue
-        self.set_background_color(SPLASH_CONFIG["background_color"])
 
-        self._setup_layout()
+        self._setup_center_frame()
         self._create_components()
         self._render_components()
 
-        # Trigger transition after delay (e.g. 2 seconds)
-        self.after(2000, self._finish_splash)
+        # Trigger transition after delay
+        self.after(SPLASH_CONFIG.get("delay", 2000), self._finish_splash)
 
-    def _setup_layout(self):
+    def _setup_center_frame(self):
         """Create and center the frame that holds splash content."""
         self.center_frame = Frame(self, bg=self["bg"])
         self.center_frame.place(relx=0.5, rely=0.5, anchor="center")
