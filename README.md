@@ -1,5 +1,25 @@
 UTS Fundamentals of Software Development — MVC + MVVM Architecture
 
+
+Please include:
+
+source code
+README
+project overview
+system requirements
+installation and setup instructions
+configurations
+how to run, test, use the software
+Please do not include:
+
+automatically generated build, cache, logs (stuffs generated from running the code)
+
+things that are specific to your local environment (e.g., IDE settings)
+
+dependencies, e.g., node modules
+
+
+
 This project implements a University Application System using a hybrid MVC + MVVM architecture in Python with Tkinter GUI and a local file database (students.data).
 
 --------------------------------------------------------------------------------
