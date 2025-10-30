@@ -80,7 +80,7 @@ class EnrolmentPage(BasePage):
             if avg is None:
                 avg = 0.00 
 
-            self.info_var.set(f"Welcome: {student.name}\nEmail: {student.email}\n")
+            self.info_var.set(f"HI, {student.name}\nEmail: {student.email}\n")
             self.avg_var.set(f"Average: {avg:.2f}")
             self.status_var.set(f"Status: {'PASS' if student.has_passed() else 'FAIL'}")
         else:
@@ -173,43 +173,6 @@ class EnrolmentPage(BasePage):
         self._refresh_status()
         self._show_message("Success" if ok else "Error", msg)
 
-    def _popup_password(self):
-        """Popup for changing student password."""
-        popup = tk.Toplevel(self)
-        popup.title("Change Password")
-        popup.geometry("320x220")
-        popup.transient(self)
-        popup.grab_set()
-
-        form_frame = tk.Frame(popup, bg="white")
-        form_frame.pack(padx=20, pady=20, fill="both", expand=True)
-
-        LabelComponent(form_frame, text="New Password:", bg="white").render().pack(fill="x", pady=6)
-        input_pw1 = TextInputComponent(form_frame, show="*")
-        input_pw1.render().pack(fill="x", pady=6)
-
-        LabelComponent(form_frame, text="Confirm Password:", bg="white").render().pack(fill="x", pady=6)
-        input_pw2 = TextInputComponent(form_frame, show="*")
-        input_pw2.render().pack(fill="x", pady=6)
-
-        def submit():
-            pw1 = input_pw1.get_text().strip()
-            pw2 = input_pw2.get_text().strip()
-
-            if not pw1 or not pw2:
-                self._show_message("Error", "Both password fields must be filled.")
-                return
-            if pw1 != pw2:
-                self._show_message("Error", "Passwords do not match.")
-                return
-
-            success, msg = self.controller.change_password(pw1, pw2)
-            self._show_message("Success" if success else "Password Error", msg)
-            if success:
-                popup.destroy()
-
-            ButtonComponent(form_frame, name="Update", action=submit).create_component().button_widget.pack(pady=10)
-        
     def _on_logout(self):
         """Handle logout and navigate to login page."""
         print("[DEBUG][Enrollment Page] -> login")
