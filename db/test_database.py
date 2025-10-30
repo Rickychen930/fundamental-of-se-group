@@ -1,29 +1,28 @@
-# test_database.py
 from database import Database
 
-# Initialize database
+# Initilize 
 db = Database()
 
-# Step 1: Make sure the file exists
+# Make sure the file exists
 print("Database file path:", db.path)
 
-# Step 2: Read current data (should be empty at first)
+# Read current data
 print("Initial data:", db.read_from_file())
 
-# Step 3: Add a mock student with password
+# Add a test student with password
 students = db.read_from_file()
 
 students.append({
     "id": "000001",
-    "name": "Alice",
-    "email": "alice@university.com",
-    "password": "Password123"  # ✅ Password for testing login
+    "name": "James",
+    "email": "james@university.com",
+    "password": "Password123" 
 })
 db.write_to_file(students)
 
-# Step 4: Read back the data
-print("Data after adding Alice:", db.read_from_file())
+# Read back the data
+print("Data after adding James:", db.read_from_file())
 
-# Step 5: Clear all data (optional)
+# Clear all data
 # db.clear_all()
 # print("Data after clear_all():", db.read_from_file())
