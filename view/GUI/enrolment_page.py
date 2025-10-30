@@ -42,10 +42,10 @@ class EnrolmentPage(BasePage):
             bg=ENROLLMENT_CONFIG["background_color"],
             fg=ENROLLMENT_CONFIG["subtitle_fg"],
             font=ENROLLMENT_CONFIG["subtitle_font"],
-            padx=30,
-            pady=30
+            padx=20,
+            pady=20
         )
-        self.form_container.pack(fill="both", expand=True, padx=20, pady=20)
+        self.form_container.pack(fill="both", padx=50, pady=50)
         self.form_container.columnconfigure(0, weight=1)
         self.form_container.columnconfigure(1, weight=3)
 
@@ -76,8 +76,12 @@ class EnrolmentPage(BasePage):
 
         student = self.controller.current_student
         if student:
+            avg = student.average_mark()
+            if avg is None:
+                avg = 0.00 
+
             self.info_var.set(f"Welcome: {student.name}\n\nEmail: {student.email}")
-            self.avg_var.set(f"Average: {student.average_mark():.2f}")
+            self.avg_var.set(f"Average: {avg:.2f}")
             self.status_var.set(f"Status: {'PASS' if student.has_passed() else 'FAIL'}")
         else:
             self.info_var.set("Error: No student loaded.")
@@ -110,17 +114,11 @@ class EnrolmentPage(BasePage):
             self.status_var.set("Status: -")
             return
 
-<<<<<<< Updated upstream
         avg = self.controller.current_student.average_mark()
         if avg is None:
-            avg = 0.0  
+            avg = 0.00  
 
         status = "PASS" if self.controller.current_student.has_passed() else "FAIL"
-
-=======
-        avg = student.average_mark()
-        status = "PASS" if student.has_passed() else "FAIL"
->>>>>>> Stashed changes
         self.avg_var.set(f"Average: {avg:.2f}")
         self.status_var.set(f"Status: {status}")
 
