@@ -2,6 +2,11 @@ from .component import Component
 from resources.parameters.app_parameters import BUTTON_CONFIG
 
 class ButtonComponent(Component):
+    """
+    ButtonComponent wraps a styled ttk.Button with layout and padding control.
+    It supports dynamic rendering, state toggling, and external widget access.
+    """
+
     def __init__(
         self,
         master,
@@ -12,6 +17,18 @@ class ButtonComponent(Component):
         layout=None,
         **kwargs
     ):
+        """
+        Initialize the button component.
+
+        Args:
+            master (tk.Widget): Parent widget.
+            name (str): Button text label.
+            action (callable): Function to execute on click.
+            style (str): ttk style name.
+            padding (tuple): (padx, pady) values.
+            layout (str): Layout manager ('pack', 'grid', 'place').
+            **kwargs: Additional configuration passed to base Component.
+        """
         config = BUTTON_CONFIG
         super().__init__(
             master,
@@ -22,19 +39,23 @@ class ButtonComponent(Component):
         )
         self._name = name
         self._action = action
-        self._btn = None  # Internal button instance
+        self._btn = None  # Internal ttk.Button instance
 
     def create_component(self):
+        """Create the internal ttk.Button widget with configured properties."""
         config = {
             "text": self._name,
             "command": self._action,
             "style": self.get_style()
         }
         config.update(self.get_extra())
-
         self._btn = self.get_ttk().Button(self.get_root(), **config)
 
     def render(self):
+        """Render the button using the specified layout manager."""
+        if not self._btn:
+            return
+
         layout = self.get_layout()
         padx, pady = self.get_padding()
 
@@ -47,8 +68,20 @@ class ButtonComponent(Component):
 
     @property
     def button_widget(self):
+        """
+        Access the internal button widget.
+
+        Returns:
+            ttk.Button: The rendered button instance.
+        """
         return self._btn
 
     def set_state(self, state):
+        """
+        Set the button state (e.g., 'normal', 'disabled').
+
+        Args:
+            state (str): Valid ttk state string.
+        """
         if self._btn:
             self._btn.config(state=state)
