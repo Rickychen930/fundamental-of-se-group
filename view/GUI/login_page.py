@@ -36,7 +36,7 @@ class LoginPage(BasePage):
             padx=20,
             pady=20
         )
-        self.form_container.pack(fill="both", padx=50, pady=50)
+        self.form_container.place(relx=0.5, rely=0.5, anchor="center")
         self.form_container.columnconfigure(0, weight=1)
         self.form_container.columnconfigure(1, weight=3)
 

@@ -80,7 +80,7 @@ class EnrolmentPage(BasePage):
             if avg is None:
                 avg = 0.00 
 
-            self.info_var.set(f"Welcome: {student.name}\n\nEmail: {student.email}")
+            self.info_var.set(f"Welcome: {student.name}\nEmail: {student.email}\n")
             self.avg_var.set(f"Average: {avg:.2f}")
             self.status_var.set(f"Status: {'PASS' if student.has_passed() else 'FAIL'}")
         else:
