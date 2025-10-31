@@ -46,10 +46,10 @@ class Subject:
     Represents a subject enrolment with its unique ID, title, mark, and grade.
     Instances are usually created through Student.enrol_subject().
     """
-    id: str       # 3-digit subject ID (e.g. "123")
-    title: str    # Human-readable title, typically "Subject-123"
-    mark: int     # Randomly assigned numeric mark (0–100)
-    grade: str    # Derived grade string ("HD", "D", "C", "P", "F")
+    id: str       # 3-digit subject ID, e.g. "123"
+    title: str    # Human-readable title, e.g. "Subject-123"
+    mark: int     # Randomly assigned numeric mark, 0–100
+    grade: str    # Grade ("HD", "D", "C", "P", "F")
 
 
     def to_dict(self) -> dict:

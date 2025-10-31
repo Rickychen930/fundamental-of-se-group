@@ -69,7 +69,6 @@ class StudentPage(BasePage):
 
             if success:
                 print("\t\033[93memail and password formats acceptable\033[0m")
-                # Make SubjectController aware of the logged-in student
                 self.subjects.set_current_student(self.student.current_student)
                 self.subject_menu()
                 break
@@ -123,7 +122,7 @@ class StudentPage(BasePage):
     def _remove_subject_flow(self):
         """Remove a subject by ID (matches expected output format)."""
         sid = input("\t\tRemove Subject by ID: ").strip()
-        print(f"\t\t\033[93mDroping Subject-{sid}\033[0m")  # kept as per sample output
+        print(f"\t\t\033[93mDroping Subject-{sid}\033[0m") 
         ok, msg = self.subjects.remove_by_id(sid)
         print(f"\t\t{'\033[93m' if ok else '\033[91m'}{msg}\033[0m")
 

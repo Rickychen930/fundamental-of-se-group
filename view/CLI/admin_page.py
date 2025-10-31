@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import List, Dict, Optional
 from view.CLI.base_page import BasePage
-from colorama import Fore  # kept for other parts of your UI; not used in partition title
 from models.student_model import Student
 from models.subject_model import grade_from_mark, GRADE_ORDER
 
@@ -63,26 +62,24 @@ class AdminPage(BasePage):
             return
 
         print("\t\033[93mGrade Grouping\033[0m")
-        # Enforce stable, expected grade order
+        # Enforce grade order
         for grade in GRADE_ORDER:
             students = grouped.get(grade, [])
             if not students:
                 continue
-            # Sort by average desc for readability; change key to name/id if preferred
             students = sorted(students, key=lambda s: (s.average_mark() or 0.0), reverse=True)
             body = ", ".join(self._format_student_for_list(s) for s in students)
             print(f"\t{grade} --> [{body}]")
 
     def show_partition(self):
         partitioned: Dict[str, List[Student]] = self.controller.partition_pass_fail()
-        # Stable order within each bucket (highest avg first)
+        # Highest avg first
         for k in ("FAIL", "PASS"):
             if k in partitioned:
                 partitioned[k].sort(key=lambda s: (s.average_mark() or 0.0), reverse=True)
 
-        # Plain header and exact bracketed lines to match expected output
-        print("\t\033[93mPASS/FAIL Partition")
-        for status in ("FAIL", "PASS"):  # FAIL first, then PASS (per screenshots)
+        print("\t\033[93mPASS/FAIL Partition\033[0m")
+        for status in ("FAIL", "PASS"):  
             students = partitioned.get(status, [])
             if not students:
                 print(f"\t{status} --> []")

@@ -36,7 +36,7 @@ class User:
         id: Unique numeric ID as a string (e.g., "000123")
         name: Full name of the user
         email: Must end with '@university.com'
-        password: Plain-text password (validated on creation)
+        password: As above for format
     """
 
     id: str
