@@ -1,7 +1,7 @@
 import os
 import platform
 
-# Simple ANSI color codes (work on most terminals)
+# ANSI color codes
 RED = "\033[91m"
 YELLOW = "\033[93m"
 RESET = "\033[0m"
