@@ -1,68 +1,45 @@
-UTS Fundamentals of Software Development — MVC + MVVM Architecture
+
+--------------------------------------------------------------------
+
+# UTS Fundamentals of Software Development
+
+### Authors: James Grant - 25932625, Ricky - 25507815
+
+# Project Overview
+
+This project is a **University Student Management System** developed for the *Fundamentals of Software Development* assessment.  
+It demonstrates the application of **object-oriented programming (OOP)** principles, and both **CLI (Command-Line Interface)** and **GUI (Graphical User Interface)** have been developed.
+
+The system allows **students** to register, log in, and manage their enrolled subjects, while **administrators** can view, group, partition, and remove student records.  
+All student data is saved persistently using file-based storage to simulate a lightweight database.
+
+---
+
+### Key Features
+
+- **Student Management** – Create, view, and manage student profiles and subjects.  
+- **Subject Enrolment** – Add or remove subjects (up to a maximum of four per student).  
+- **Automated Grading** – Each subject receives a random mark and calculated grade (HD, D, C, P, F).  
+- **Data Persistence** – All records are saved in `students.data` using Python’s pickle module.  
+- **Admin Tools** – View all students, group by grade, partition by pass/fail, and remove students.  
+- **Dual Interface** – Supports both a CLI and a GUI interface for interaction.  
+- **Error Handling** – Includes validation and custom exception handling for input and process errors.  
+- **Robust Exception Management** – Uses `try` and `except` blocks throughout the program to safely handle file operations, invalid inputs, 
+and unexpected runtime errors, ensuring the system continues running smoothly without crashing.  
 
 
-Please include:
+### Technologies Used
 
-source code
-README
-project overview
-system requirements
-installation and setup instructions
-configurations
-how to run, test, use the software
-Please do not include:
+- **Language:** Python 3  
+- **GUI Framework:** Tkinter  
+- **Data Storage:** Pickle students.data   
+- **OOP Concepts:** Encapsulation, inheritance, polymorphism, and abstraction  
 
-automatically generated build, cache, logs (stuffs generated from running the code)
+This project implements a **University Application System** using a **MVC design pattern** in Python with a Tkinter GUI front end.
 
-things that are specific to your local environment (e.g., IDE settings)
+###  Example Workflow
 
-dependencies, e.g., node modules
-
-
-
-This project implements a University Application System using a hybrid MVC + MVVM architecture in Python with Tkinter GUI and a local file database (students.data).
-
---------------------------------------------------------------------------------
-Goal: Clear Mental Model of the Architecture
---------------------------------------------------------------------------------
-
-This project isn’t a pure MVC (Model–View–Controller); it’s a hybrid MVC + MVVM, because:
-
-- The GUI pages (Views) use ViewModels as logic mediators.
-- The Controllers manage business rules and data persistence.
-- The Models define your data and enforce system constraints.
-
---------------------------------------------------------------------------------
-The Core Layers
---------------------------------------------------------------------------------
-
-+------------------+
-|      View        | ← handles user input/output
-| (CLI / GUI pages)|
-+--------▲---------+
-         |
-         | calls
-         ▼
-+------------------+
-|    Controller    | ← business logic (what to do)
-| (Admin / Student)|
-+--------▲---------+
-         |
-         | loads/saves data
-         ▼
-+------------------+
-|     Database     | ← raw file I/O (pickled data)
-+--------▲---------+
-         |
-         | stores/loads Python objects
-         ▼
-+------------------+
-|      Models      | ← data definitions & rules
-| (Student, Admin) |
-+------------------+
-
-Example work flow 
-
+```text
 [View] StudentPage._enrol_subject_flow()
         ↓
 [Controller] StudentController.enrol_auto()
@@ -73,130 +50,32 @@ Example work flow
         ↓
 [Database] write_to_file()
         ↓
-[Disk] db/students.data (pickled)
+[Disk] db/students.data
+```
 
---------------------------------------------------------------------------------
-View = GUI Pages (Tkinter)
---------------------------------------------------------------------------------
+# System requirements
 
-Files:
-views/GUI/login_page.py
-views/GUI/register_page.py
-views/GUI/enrolment_page.py
-views/GUI/admin_page.py
+Python: Version 3.10 or higher.<br>
+Tkinter.<br>
 
-Purpose:
-To display information and capture user input — buttons, text fields, and labels.
+No external dependencies.<br>
 
-Responsibilities:
-- Show forms (e.g., Login, Register)
-- Display enrolled subjects
-- Handle button clicks
-- Pass input data to the ViewModel
+# Installation and setup instructions
 
-Views do not handle business logic or file I/O.
+None required.
 
-When a user clicks “Login”, the View calls:
+# Configurations
 
-self.view_model.login()
+None required.<br>
+NOTE: John Smith john.smith@university.com is available in the DB using password Helloworld123
 
---------------------------------------------------------------------------------
-Controllers = Business Logic + Data Coordination
---------------------------------------------------------------------------------
+# How to run, test, use the software
 
-Files:
-controller/student_controller.py
-controller/admin_controller.py
-controller/subject_controller.py
+The project can be run in two different modes: **Command-Line Interface (CLI)** and **Graphical User Interface (GUI)**.  
+Both modes use the same backend logic and shared data file.
 
-Purpose:
-Controllers are the brains of the system. They connect the ViewModels to the Models and the Database.
-
-Responsibilities:
-- Load and save data through the Database
-- Apply business rules (max 4 subjects, pass/fail logic, unique IDs)
-- Never directly manipulate the GUI
-
-Example:
-
-def login(self, email, password):
-    raw = self.db.read_from_file() or []
-    students = students_from_dicts(raw)
-    student = find_student_by_email(students, email)
-    if student and student.verify_password(password):
-        print("[DEBUG] Login success")
-        return True, student.role
-    print("[DEBUG] Login failed")
-    return False, None
-
-Controllers interact only with Models and the Database, making them reusable for both CLI and GUI applications.
-
-Example Controllers:
-- StudentController – Handles login, registration, enrolment, subject removal, and password changes.
-- AdminController – Lists, groups, partitions, removes, or clears student data.
-- SubjectController – Manages subject-specific operations such as adding or removing subjects.
+From the project root run the following command > python .\main.py
+Select either the **CLI** or **GUI** option.  
 
 
---------------------------------------------------------------------------------
-Models = Core Data and Business Rules
---------------------------------------------------------------------------------
-
-Files:
-models/user_model.py
-models/student_model.py
-models/admin_model.py
-models/subject_model.py
-
-Purpose:
-Defines all application data structures and the rules that govern them, including Users, Students, Admins, and Subjects.
-
-Responsibilities:
-- Represent data entities and enforce validation rules.
-- Generate IDs, marks, and grades.
-- Implement internal operations such as enrol_subject or change_password.
-- Contain all business logic (no GUI or database code).
-
-Example:
-
-def enrol_subject(self, title):
-    if len(self.subjects) >= 4:
-        raise ValueError("Cannot enrol in more than four subjects.")
-    mark = random.randint(25, 100)
-    grade = grade_from_mark(mark)
-    self.subjects.append(Subject(gen_subject_id(), title, mark, grade))
-    return True
-
-Model Relationships:
-- User → Student / Admin (inheritance)
-- Student → Subject (composition: a student has subjects)
-- Admin → Student (dependency: admin manages students)
-
---------------------------------------------------------------------------------
-Database = Data Persistence Layer
---------------------------------------------------------------------------------
-
-File:
-db/database.py
-
-Purpose:
-Manages all data persistence for the project using Python’s pickle module.  
-All system data, including students and admins, are stored in a single local file called students.data.
-
-Responsibilities:
-- Create the database file if missing.
-- Read and write serialized Python objects.
-- Clear file contents when required.
-- Provide backward-compatible methods such as read_data and read_from_file.
-
-Example:
-
-def write_to_file(self, data_list):
-    with open(self.path, "wb") as f:
-        pickle.dump(list(data_list or []), f)
-    print(f"[DEBUG][DB] Wrote {len(data_list)} records to {self.path}")
-
-The Database is only accessed by Controllers, never directly by Views or ViewModels.
-
---------------------------------------------------------------------------------
-End of Document
---------------------------------------------------------------------------------
+--------------------------------------------------------------------

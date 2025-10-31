@@ -1,8 +1,10 @@
 import os
 import platform
-from colorama import init, Fore
 
-init(autoreset=True)
+# Simple ANSI color codes (work on most terminals)
+RED = "\033[91m"
+YELLOW = "\033[93m"
+RESET = "\033[0m"
 
 class BasePage:
     """Base class for CLI pages with common display helpers."""
@@ -13,8 +15,8 @@ class BasePage:
 
     def print_fail(self, message):
         """Print an error message in red."""
-        print(Fore.RED + message)
+        print(f"{RED}{message}{RESET}")
 
     def print_success(self, message):
         """Print a success or info message in yellow."""
-        print(Fore.YELLOW + message)
+        print(f"{YELLOW}{message}{RESET}")
