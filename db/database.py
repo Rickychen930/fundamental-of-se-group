@@ -4,7 +4,7 @@ from typing import List
 
 class Database:
     """
-    A simple file-based database class for storing and loading student data.
+    Database class for storing and loading student data.
     """
 
     def __init__(self):
