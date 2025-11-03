@@ -1,15 +1,9 @@
-# -------------------------------------------------------------------
-# Admin Model
-# -------------------------------------------------------------------
-
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional, List, Tuple, Dict
-
 from models.user_model import User
 from models.student_model import Student
 from models.subject_model import grade_from_mark
-
 
 def overall_grade_for(student: Student) -> Optional[str]:
     """

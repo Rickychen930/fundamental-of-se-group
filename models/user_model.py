@@ -1,11 +1,6 @@
-# -------------------------------------------------------------------
-# User Model
-# -------------------------------------------------------------------
-
 from __future__ import annotations
 from dataclasses import dataclass
 import re, random
-
 
 # Valid university email format (must end with @university.com)
 EMAIL_RE = re.compile(r"^[A-Za-z0-9._%+-]+@university\.com$")

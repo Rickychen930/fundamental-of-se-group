@@ -1,9 +1,4 @@
-# -------------------------------------------------------------------
-# Student Controller 
-# -------------------------------------------------------------------
-
 from __future__ import annotations
-
 from typing import Optional, List
 from db.database import Database
 from models.student_model import Student, students_from_dicts, students_to_dicts
@@ -17,6 +12,8 @@ class StudentController:
         self.db = db
         self.current_student: Optional[Student] = None
 
+    # ---------- Internal Helpers ----------
+
     def _load_students(self) -> List[Student]:
         """Read all students from the DB file."""
         raw = self.db.read_from_file()
@@ -25,7 +22,6 @@ class StudentController:
     def _write_students(self, students: List[Student]) -> None:
         """Overwrite the DB with exactly these students."""
         self.db.write_to_file(students_to_dicts(students))
-
 
     def _save_current_profile(self) -> None:
         """
@@ -41,7 +37,6 @@ class StudentController:
 
         self._write_students(students)
 
-
     def find_by_email(self, email: str) -> Optional[Student]:
         """Find a student by email (case-insensitive)."""
         e = email.strip().lower()
@@ -54,7 +49,7 @@ class StudentController:
         """Check if an email is already registered."""
         return self.find_by_email(email) is not None
     
-    # ---------- main student logic ----------
+    # ---------- Below is the Student Logic ----------
 
     def login(self, email: str, password: str) -> tuple[bool, Optional[str]]:
         """Validate formats, then log in and set current_student."""

@@ -1,9 +1,4 @@
-# -------------------------------------------------------------------
-# Subject Controller 
-# -------------------------------------------------------------------
-
 from __future__ import annotations
-
 import random
 from typing import List, Optional, Tuple
 from db.database import Database
@@ -52,7 +47,24 @@ class SubjectController:
         except Exception as e:
             return False, str(e), None
 
-    # ---------- main subject logic ----------
+    def _persist_current_student(self) -> None:
+        """
+        Save the current student's latest state to the database.
+        Replaces any existing record with the same id.
+        """
+        if not self.current_student:
+            return
+
+        raw = self.db.read_from_file()
+
+        student_id = self.current_student.id
+        out = [d for d in raw if str(d.get("id", "")).strip() != student_id]
+        out.append(self.current_student.to_dict())
+
+        self.db.write_to_file(out)
+
+
+    # ---------- Below is the Subject Logic ----------
 
     def list_subjects(self) -> List[Subject]:
         """Get the current student's subjects (empty list if not logged in)."""
@@ -81,20 +93,3 @@ class SubjectController:
             return None
         return self.current_student.average_mark()
 
-    # ---------- persistence ----------
-
-    def _persist_current_student(self) -> None:
-        """
-        Persist the current student's latest state to the database.
-        Replaces any existing record with the same id.
-        """
-        if not self.current_student:
-            return
-
-        raw = self.db.read_from_file()
-
-        student_id = self.current_student.id
-        out = [d for d in raw if str(d.get("id", "")).strip() != student_id]
-        out.append(self.current_student.to_dict())
-
-        self.db.write_to_file(out)

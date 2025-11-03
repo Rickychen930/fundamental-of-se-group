@@ -1,7 +1,3 @@
-# -------------------------------------------------------------------
-# Admin Controller 
-# -------------------------------------------------------------------
-
 from __future__ import annotations
 from typing import List
 from db.database import Database
@@ -11,6 +7,8 @@ from models.student_model import Student, students_from_dicts, students_to_dicts
 
 class AdminController:
     """Handles admin features like viewing, grouping, and removing students."""
+
+    # ---------- Internal Helpers ----------
 
     def __init__(self, db: Database):
         """Connect to the database (no admin instance needed)."""
@@ -25,7 +23,7 @@ class AdminController:
         """Write updated student data back to the file."""
         self.db.write_to_file(students_to_dicts(students))
 
-    # ---------- main admin logic ----------
+    # ---------- Below is the Admin Logic ----------
 
     def list_students(self) -> list[dict]:
         """Return a list of all students with their details."""
